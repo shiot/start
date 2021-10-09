@@ -1,5 +1,5 @@
 # [Deutsch](https://github.com/shiot/start#deutsch) - [English](https://github.com/shiot/start#english)
-### Deutsch
+## Deutsch
 Starte dieses Skript, um die Welt Deines eigenen SmartHome zu betreten und mit der Konfiguration deines Proxmox Home Server zu beginnen.
 
 Bitte benutze dieses Skript nur auf neu installierten Systemen. Wenn Du dieses Skript auf bereits konfigurierten und genutzten Servern einsetzt kann es zu schwerwiegenden Fehlern an deinem Serversystem nutzen. Mir ist es natürlich nicht möglich, dieses Skript auf allen nur erdenklichen Systemen zu testen, aus diesem Grund, kann ich für die richtige Funktion des Skript nicht Garantieren. Die Nutzung dieses Skript geschieht auf eigene Gefahr und Verantwortung. 
@@ -12,7 +12,7 @@ curl -sSL enter.smarthome-iot.net | bash
 ```
 Weitere Informationen findest Du in meinem [Blog](https://smarthome-iot.net)
 
-### English
+## English
 Launch this script to enter the world of your own SmartHome and start configuring your Proxmox Home Server.
 
 Please use this script only on newly installed systems. If you use this script on already configured and used servers it can cause serious errors on your server system. Of course it is not possible for me to test this script on all possible systems, so I can't guarantee the correct function of this script. The use of this script is at your own risk and responsibility. 
