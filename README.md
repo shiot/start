@@ -1,3 +1,4 @@
+# Deutsch   English
 ### Deutsch
 Starte dieses Skript, um die Welt Deines eigenen SmartHome zu betreten und mit der Konfiguration deines Proxmox Home Server zu beginnen.
 
@@ -11,3 +12,13 @@ curl -sSL enter.smarthome-iot.net | bash
 ```
 
 ### English
+Launch this script to enter the world of your own SmartHome and start configuring your Proxmox Home Server.
+
+Please use this script only on newly installed systems. If you use this script on already configured and used servers it can cause serious errors on your server system. Of course it is not possible for me to test this script on all possible systems, so I can't guarantee the correct function of this script. The use of this script is at your own risk and responsibility. 
+
+I created this new repository based on your feedback and completely reworked the script again. VLANs are now natively supported and the server is also directly configured for VLANs. When the script is called, it now directly checks if the required configuration file exists. If this does not exist, it is now immediately created by determined data and a questionnaire. After creating the configuration file, the basic configuration of your Proxmox Home Server is performed. All my other scripts are based on this configuration and the created configfile.
+
+But now have fun with your new home server, you can start with this simple command on the Proxmox console.
+```bash
+curl -sSL enter.smarthome-iot.net | bash
+```
