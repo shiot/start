@@ -1,4 +1,4 @@
-# Deutsch   English
+# [Deutsch](https://github.com/shiot/start#deutsch) - [English](https://github.com/shiot/start#english)
 ### Deutsch
 Starte dieses Skript, um die Welt Deines eigenen SmartHome zu betreten und mit der Konfiguration deines Proxmox Home Server zu beginnen.
 
@@ -10,6 +10,7 @@ Aber nun viel Spaß mit deinem neuen Home Server, starten kannst Du mit diesem e
 ```bash
 curl -sSL enter.smarthome-iot.net | bash
 ```
+Weitere Informationen findest Du in meinem [Blog](https://smarthome-iot.net)
 
 ### English
 Launch this script to enter the world of your own SmartHome and start configuring your Proxmox Home Server.
@@ -22,3 +23,4 @@ But now have fun with your new home server, you can start with this simple comma
 ```bash
 curl -sSL enter.smarthome-iot.net | bash
 ```
+You can find more information in my [blog](https://smarthome-iot.net)
