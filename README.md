@@ -1,5 +1,5 @@
 # [Deutsch](https://github.com/shiot/start#deutsch) - [English](https://github.com/shiot/start#english)
-![](https://github.com/shiot/start/blob/master/images/logo.jpg)
+![](https://github.com/shiot/start/blob/master/images/logo.png)
 ## Deutsch
 Starte dieses Skript, um die Welt Deines eigenen SmartHome zu betreten und mit der Konfiguration deines Proxmox Home Server zu beginnen.
 
