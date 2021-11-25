@@ -175,33 +175,33 @@ if [ ! -d "/etc/pve/nodes/${pve_hostname}" ]; then mkdir -p "/etc/pve/nodes/${pv
 bak_file "backup" "/etc/pve/firewall/cluster.fw"
 
 #Cluster level firewall - IP SET
-echo -e "[OPTIONS]\nenable: 1\n" >> $fw_cluster_file
+echo -e "[OPTIONS]\nenable: 1\n" >> ${fw_cluster_file}
 ##All private Networks
-echo -e "[IPSET private] \0043 Alle privaten Netzwerke, wichtig für VPN\n10.0.0.0/8\n172.16.0.0/12\n192.168.0.0/16\n" >> $fw_cluster_file
+echo -e "[IPSET private] \0043 Alle privaten Netzwerke, wichtig für VPN\n10.0.0.0/8\n172.16.0.0/12\n192.168.0.0/16\n" >> ${fw_cluster_file}
 if $vlan_available; then
   if [ -z "${vlan_unifi_gw}" ]; then
-    echo -e "[IPSET unifi] \0043 Ubiquiti/UniFi Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n" >> $fw_cluster_file
+    echo -e "[IPSET unifi] \0043 Ubiquiti/UniFi Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n" >> ${fw_cluster_file}
   fi
-  echo -e "[IPSET productive] \0043 Produktiv-Netzwerk (VLAN-ID ${vlan_productive_id})\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n" >> $fw_cluster_file
-  echo -e "[IPSET iot] \0043 IoT-Netzwerk (VLAN-ID ${vlan_iot_id})\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> $fw_cluster_file
-  echo -e "[IPSET guest] \0043 Gäste-Netzwerk (VLAN-ID ${vlan_guest_id})\n${vlan_guest_net}.0/${vlan_guest_cidr} \0043 VLAN-ID ${vlan_guest_id}\n" >> $fw_cluster_file
+  echo -e "[IPSET productive] \0043 Produktiv-Netzwerk (VLAN-ID ${vlan_productive_id})\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n" >> ${fw_cluster_file}
+  echo -e "[IPSET iot] \0043 IoT-Netzwerk (VLAN-ID ${vlan_iot_id})\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> ${fw_cluster_file}
+  echo -e "[IPSET guest] \0043 Gäste-Netzwerk (VLAN-ID ${vlan_guest_id})\n${vlan_guest_net}.0/${vlan_guest_cidr} \0043 VLAN-ID ${vlan_guest_id}\n" >> ${fw_cluster_file}
   if $vlan_other; then
     vlan_is_count=$(cat "${config_path}/${config_file}" | grep 'vlan_.*id_' | cut -d_ -f4 | cut -d= -f1 | tail -n1)
     for N in $(seq 1 ${vlan_is_count}); do
       name="$(cat "${config_path}/${config_file}" | grep "vlan_.*id_${N}" | cut -d_ -f2 | cut -d= -f1)"
-      echo -e "[IPSET ${name}] \0043 ${name}-Netzwerk (VLAN-ID $(cat "${config_path}/${config_file}" | grep "vlan_.*id_${N}" | cut -d= -f2)\n$(cat "${config_path}/${config_file}" | grep "vlan_.*net_${N}" | cut -d= -f2 | cut -d. -f1,2,3)/$(cat "${config_path}/${config_file}" | grep "vlan_.*cidr_${N}" | cut -d= -f2) \0043 VLAN-ID $(cat "${config_path}/${config_file}" | grep "vlan_.*id_${N}" | cut -d= -f2)\n" >> $fw_cluster_file
+      echo -e "[IPSET ${name}] \0043 ${name}-Netzwerk (VLAN-ID $(cat "${config_path}/${config_file}" | grep "vlan_.*id_${N}" | cut -d= -f2)\n$(cat "${config_path}/${config_file}" | grep "vlan_.*net_${N}" | cut -d= -f2 | cut -d. -f1,2,3)/$(cat "${config_path}/${config_file}" | grep "vlan_.*cidr_${N}" | cut -d= -f2) \0043 VLAN-ID $(cat "${config_path}/${config_file}" | grep "vlan_.*id_${N}" | cut -d= -f2)\n" >> ${fw_cluster_file}
     done
   fi
   ###Create loggical IP-Sets
   if [ -z "${vlan_unifi_gw}" ]; then
-    echo -e "[IPSET unifi-productive] \0043 Ubiquiti/UniFi- und Produktiv-Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n" >> $fw_cluster_file
-    echo -e "[IPSET unifi-iot] \0043 Ubiquiti/UniFi- und IoT-Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> $fw_cluster_file
-    echo -e "[IPSET unifi-productive-iot] \0043 Ubiquiti/UniFi-, Produktiv- und IoT-Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> $fw_cluster_file
+    echo -e "[IPSET unifi-productive] \0043 Ubiquiti/UniFi- und Produktiv-Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n" >> ${fw_cluster_file}
+    echo -e "[IPSET unifi-iot] \0043 Ubiquiti/UniFi- und IoT-Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> ${fw_cluster_file}
+    echo -e "[IPSET unifi-productive-iot] \0043 Ubiquiti/UniFi-, Produktiv- und IoT-Netzwerk\n${vlan_unifi_net}.0/${vlan_unifi_cidr} \0043 UniFi Netzwerk\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> ${fw_cluster_file}
   fi 
-  echo -e "[IPSET productive-iot] \0043 Produktiv- und IoT-Netzwerk (VLAN-IDs ${vlan_productive_id} und ${vlan_iot_id})\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> $fw_cluster_file
-  echo -e "[IPSET productive-guest] \0043 Produktiv- und Gäste-Netzwerk (VLAN-IDs ${vlan_productive_id} und ${vlan_guest_id})\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n${vlan_guest_net}.0/${vlan_guest_cidr} \0043 VLAN-ID ${vlan_guest_id}\n" >> $fw_cluster_file
+  echo -e "[IPSET productive-iot] \0043 Produktiv- und IoT-Netzwerk (VLAN-IDs ${vlan_productive_id} und ${vlan_iot_id})\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n${vlan_iot_net}.0/${vlan_iot_cidr} \0043 VLAN-ID ${vlan_iot_id}\n" >> ${fw_cluster_file}
+  echo -e "[IPSET productive-guest] \0043 Produktiv- und Gäste-Netzwerk (VLAN-IDs ${vlan_productive_id} und ${vlan_guest_id})\n${vlan_productive_net}.0/${vlan_productive_cidr} \0043 VLAN-ID ${vlan_productive_id}\n${vlan_guest_net}.0/${vlan_guest_cidr} \0043 VLAN-ID ${vlan_guest_id}\n" >> ${fw_cluster_file}
 else
-  echo -e "[IPSET productive] \0043 Netzwerk\n${network_ip}.0/${network_cidr} \0043 eigener Netzwerkbereich\n" >> $fw_cluster_file
+  echo -e "[IPSET productive] \0043 Netzwerk\n${network_ip}.0/${network_cidr} \0043 eigener Netzwerkbereich\n" >> ${fw_cluster_file}
 fi
 ##Create Proxmox needs
 echo -e "[RULES]\nGROUP fwsg_proxmox\n\n[group fwsg_proxmox]\nIN SSH(ACCEPT) -source +productive -log nolog\nIN ACCEPT -source +private -p tcp -dport 8006 -log nolog\nIN ACCEPT -source +private -p tcp -dport 5900:5999 -log nolog\nIN ACCEPT -source +private -p tcp -dport 3128 -log nolog\nIN ACCEPT -source +private -p udp -dport 111 -log nolog\nIN ACCEPT -source +private -p udp -dport 5404:5405 -log nolog\nIN ACCEPT -source +private -p tcp -dport 60000:60050 -log nolog\n\n" >> $fw_cluster_file

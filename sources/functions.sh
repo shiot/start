@@ -68,20 +68,20 @@ function echoLOG() {
   blue='\033[1;34m'
   
   if [ ! -d "/opt/smarthome-iot_net/" ]; then mkdir -p "/opt/smarthome-iot_net/"; fi
-  if [ ! -f "${config_path}/${log_file}" ]; then touch "${config_path}/${log_file}"; fi
+  if [ ! -f "${log_file}" ]; then touch "${log_file}"; fi
   
   if [[ $typ == "r" ]]; then
     echo -e "$(date +'%Y-%m-%d  %T')  [${red}ERROR${nc}]  $text"
-    echo -e "$(date +'%Y-%m-%d  %T')  [ERROR]  $text" >> "${config_path}/${log_file}"
+    echo -e "$(date +'%Y-%m-%d  %T')  [ERROR]  $text" >> "${log_file}"
   elif [[ $typ == "g" ]]; then
     echo -e "$(date +'%Y-%m-%d  %T')  [${green}OK${nc}]     $text"
-    echo -e "$(date +'%Y-%m-%d  %T')  [OK]     $text" >> "${config_path}/${log_file}"
+    echo -e "$(date +'%Y-%m-%d  %T')  [OK]     $text" >> "${log_file}"
   elif [[ $typ == "y" ]]; then
     echo -e "$(date +'%Y-%m-%d  %T')  [${yellow}WAIT${nc}]   $text"
-    echo -e "$(date +'%Y-%m-%d  %T')  [WARTE]   $text" >> "${config_path}/${log_file}"
+    echo -e "$(date +'%Y-%m-%d  %T')  [WARTE]   $text" >> "${log_file}"
   elif [[ $typ == "b" ]]; then
     echo -e "$(date +'%Y-%m-%d  %T')  [${blue}INFO${nc}]   $text"
-    echo -e "$(date +'%Y-%m-%d  %T')  [INFO]   $text" >> "${config_path}/${log_file}"
+    echo -e "$(date +'%Y-%m-%d  %T')  [INFO]   $text" >> "${log_file}"
   fi
 }
 

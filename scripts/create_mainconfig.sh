@@ -72,8 +72,8 @@ function vlan() {
     else
       vlan_guest_cidr=$(whip_inputbox "OK" "$whip_title" "Wie lautet die Gateway-IP deines Gastnetzwerk?" "24")
     fi
-    if [ -f "/tmp/$tmp_vlan" ]; then rm "/tmp/$tmp_vlan"; fi
-    touch "/tmp/$tmp_vlan"
+    if [ -f "${tmp_vlan}" ]; then rm "${tmp_vlan}"; fi
+    touch "${tmp_vlan}"
     if $update; then
       vlan_is_count=$(cat "${config_path}/${config_file}" | grep 'vlan_.*id_' | cut -d_ -f4 | cut -d= -f1 | tail -n1)
       vlan_count=$(whip_inputbox "OK" "$whip_title" "Wieviele weitere VLANs möchtest du einrichten?" "${vlan_is_count}")
@@ -82,10 +82,10 @@ function vlan() {
         id=$(whip_inputbox "OK" "$whip_title" "Wie lautet die VLAN-ID von $name?" "$(cat "${config_path}/${config_file}" | grep "vlan_.*id_${N}" | cut -d= -f2)")
         gw=$(whip_inputbox "OK" "$whip_title" "Wie lautet die Gateway-IP von $name?" "$(cat "${config_path}/${config_file}" | grep "vlan_.*net_${N}" | cut -d= -f2)")
         cidr=$(whip_inputbox "OK" "$whip_title" "Wie lautet die CIDR von $name?" "$(cat "${config_path}/${config_file}" | grep "vlan_.*cidr_${N}" | cut -d= -f2)")
-        echo -e "vlan_${name}_id_${N}=${id}" >> "/tmp/$tmp_vlan"
-        echo -e "vlan_${name}_net_${N}=\"$(echo ${gw} | cut -d. -f1,2,3)\"" >> "/tmp/$tmp_vlan"
-        echo -e "vlan_${name}_gw_${N}=\"${gw}\"" >> "/tmp/$tmp_vlan"
-        echo -e "vlan_${name}_cidr_${N}=\"${cidr}\"" >> "/tmp/$tmp_vlan"
+        echo -e "vlan_${name}_id_${N}=${id}" >> "${tmp_vlan}"
+        echo -e "vlan_${name}_net_${N}=\"$(echo ${gw} | cut -d. -f1,2,3)\"" >> "${tmp_vlan}"
+        echo -e "vlan_${name}_gw_${N}=\"${gw}\"" >> "${tmp_vlan}"
+        echo -e "vlan_${name}_cidr_${N}=\"${cidr}\"" >> "${tmp_vlan}"
       done
     else
       if whip_yesno "JA" "NEIN" "$whip_title" "Möchtest Du weitere VLANs einrichten?"; then
@@ -96,10 +96,10 @@ function vlan() {
           id=$(whip_inputbox "OK" "$whip_title" "Wie lautet die VLAN-ID von $name?")
           gw=$(whip_inputbox "OK" "$whip_title" "Wie lautet die Gateway-IP von $name?")
           cidr=$(whip_inputbox "OK" "$whip_title" "Wie lautet die CIDR von $name?")
-          echo -e "vlan_${name}_id_${N}=${id}" >> "/tmp/$tmp_vlan"
-          echo -e "vlan_${name}_net_${N}=\"$(echo ${gw} | cut -d. -f1,2,3)\"" >> "/tmp/$tmp_vlan"
-          echo -e "vlan_${name}_gw_${N}=\"${gw}\"" >> "/tmp/$tmp_vlan"
-          echo -e "vlan_${name}_cidr_${N}=\"${cidr}\"" >> "/tmp/$tmp_vlan"
+          echo -e "vlan_${name}_id_${N}=${id}" >> "${tmp_vlan}"
+          echo -e "vlan_${name}_net_${N}=\"$(echo ${gw} | cut -d. -f1,2,3)\"" >> "${tmp_vlan}"
+          echo -e "vlan_${name}_gw_${N}=\"${gw}\"" >> "${tmp_vlan}"
+          echo -e "vlan_${name}_cidr_${N}=\"${cidr}\"" >> "${tmp_vlan}"
         done
       fi
     fi
@@ -278,10 +278,10 @@ function write_config() {
     echo -e "vlan_guest_net=\"$(echo ${vlan_guest_gw} | cut -d. -f1,2,3)\"" >> "${config_path}/${config_file}"
     echo -e "vlan_guest_gw=\"$vlan_guest_gw\"" >> "${config_path}/${config_file}"
     echo -e "vlan_guest_cidr=\"$vlan_guest_cidr\"" >> "${config_path}/${config_file}"
-    vlan_other=$(cat /tmp/$tmp_vlan)
+    vlan_other=$(cat "${tmp_vlan}")
     if [ -n $vlan_other ]; then
       echo -e "vlan_other=true" >> "${config_path}/${config_file}"
-      echo $(cat /tmp/$tmp_vlan) >> "${config_path}/${config_file}"
+      echo $(cat "${tmp_vlan}") >> "${config_path}/${config_file}"
     else
       echo -e "vlan_other=false" >> "${config_path}/${config_file}"
     fi
