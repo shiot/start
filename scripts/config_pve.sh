@@ -5,9 +5,8 @@
 #Load needed Files
 source "${script_path}/sources/functions.sh"  # Functions needed in this Script
 source "${script_path}/sources/variables.sh"  # Variables needed in this Script
-source "${script_path}/language/${lang}.sh"   # Language Variables in this Script
+source "${script_path}/language/${main_language}.sh"   # Language Variables in this Script
 
-# loads mainconfig file if exists
 # loads mainconfig file if exists
 if [ -f "${config_path}/${config_file}" ]; then
   source "${config_path}/${config_file}"
@@ -16,9 +15,7 @@ else
   exit 1
 fi
 
-if [ -z "$1" ] && [[ "$1" == "update" ]]; then
-  update=true
-fi
+if [ -z "$1" ] && [[ "$1" == "update" ]]; then update=true; fi
 
 whip_title="KONFIGURIERE HOMESERVER"
 
@@ -223,3 +220,5 @@ else
   sed -i 's|#/dev/sdc -a -I 194 -W 4,45,55 -R 5 -m admin@example.com|/dev/'"${pve_rootdisk}"' -a -I 194 -W 4,45,55 -R 5 -m '"${mail_rootadress}"'|' /etc/smartd.conf
 fi
 systemctl restart smartmontools
+
+exit 0
