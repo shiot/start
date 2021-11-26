@@ -3,130 +3,255 @@
 # Checks if the Hostsystem is already configuered. If it is, load the mainmenu otherwise configure the
 # Proxmox Host system and generate some configuration files, for later use
 
-export gh_tag=$1
-export main_language=$2
 export script_path=$(cd `dirname $0` && pwd)
+export main_language=$1
+export gh_test=$2
+export ct_dev=$3
 
 #Load needed Files
-source ${script_path}/sources/functions.sh  # Functions needed in this Script
-source ${script_path}/sources/variables.sh  # Variables needed in this Script
-source ${script_path}/language/${lang}.sh   # Language Variables in this Script
-source ${script_path}/images/logo.sh        # Logo in the Shell
+source ${script_path}/sources/functions.sh            # Functions needed in this Script
+source ${script_path}/sources/variables.sh            # Variables needed in this Script
+source ${script_path}/language/${main_language}.sh    # Language Variables in this Script
+source ${script_path}/images/logo.sh                  # Logo in the Shell
 
 # Unique functions
-function mainmenu() {
-  menu_main=("01" "... meinen HomeServer aktualisieren" \
-             "02" "... einen oder mehrere Container aktualisieren" \
-             "03" "... meinen HomeServer und alle Container aktualisieren" \
-             "04" "... einen oder mehrere Container erstellen" \
-             "05" "... ein manuelles Backup von einem oder mehreren Containern erstellen" \
-             "06" "... einen oder mehrere Container löschen" \
-             "07" "... einen oder mehrere Container aus manuellen Backups wiederherstellen" \
-             "08" "... eine oder mehrere virtuelle Maschinen erstellen und das Installationsimage einbinden" \
-             "09" "... ein manuelles Snapshot von einer oder mehreren virtuellen Maschinen erstellen" \
-             "10" "... eine oder mehrere virtuellen Maschinen löschen" \
-             "11" "... eine oder mehrere virtuelle MAschinen aus manuellem Snapshot wiederherstellen" \
-             "12" "... weitere Tools anzeigen" \
-             "" "" \
-             "Q"  "... dieses Menü verlassen und das Skript beenden")
+function menuHost {
+  while [ 2 ]; do
+    choice_mhost=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Operative Systems" "Ich möchte ..." 20 80 10 \
+      "1)" "... meinen HomeServer aktualisieren" \
+      "" "" \
+      "2)" "... die Konfiguration meines HomeServer ändern" \
+      "" "" \
+      "" "" \
+      "9)" "... zurück zum Hauptmenü"  3>&2 2>&1 1>&3)
+    case $choice_mhost in
+      "1)")
+        if updateHost; then
+          echoLOG g "HomeServer erfolgreich aktualisiert"
+        else
+          echoLOG r "HomeServer update nicht erfolgreich"
+        fi
+      ;;
+      "2)")
+        if bash "${script_path}/scripts/create_mainconfig.sh" "update"; then
+          echoLOG g "HomeServer konfiguration erfolgreich geändert"
+        else
+          echoLOG r "HomeServer konfiguration konnte nicht geändert werden"
+        fi
+      ;;
+      "9)")
+        menuMain
+      ;;
+      "") ;;
+    esac
+  done
+}
 
-  choose=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " Hauptmenü " "\nIch möchte ..." 20 80 10 "${menu_main[@]}" 3>&1 1>&2 2>&3)
-
-  if [[ ${choocse} == "01" ]] ||; then
-    if bash "${script_path}/scripts/update.sh" "${main_language}" "${gh_tag}" "host"; then
-      echoLOG g "HomerServer erfolgreich aktualisiert"
-      mainmenu
-    else
-      echoLOG r "Die Aktualisierung des HomeServer ist fehlgeschlagen"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "02" ]]; then
-    if bash "${script_path}/scripts/update.sh" "${main_language}" "${gh_tag}" "lxc"; then
-      echoLOG g "Container erfolgreich aktualisiert"
-      mainmenu
-    else
-      echoLOG r "Die Containeraktualisierung ist fehlgeschlagen"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "03" ]]; then
-    if bash "${script_path}/scripts/update.sh" "${main_language}" "${gh_tag}" "all"; then
-      echoLOG g "HomeServer und Container erfolgreich aktualisiert"
-      mainmenu
-    else
-      echoLOG r "HomeServer und Container konnten nicht aktualisiert werden"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "04" ]]; then
-    if bash "${script_path}/scripts/lxc_genrate.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "Container erfolgreich erstellt"
-      mainmenu
-    else
-      echoLOG r "Containererstellung fehlgeschlagen"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "05" ]]; then
-    if bash "${script_path}/scripts/lxc_backup.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "Containerbackup erfolgreich erstellt"
-      mainmenu
-    else
-      echoLOG r "Containerbackup fehlgeschlagen"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "06" ]]; then
-    if bash "${script_path}/scripts/lxc_delete.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "Container erfolgreich gelöscht"
-      mainmenu
-    else
-      echoLOG r "Container konnten nicht gelöscht werden"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "07" ]]; then
-    if bash "${script_path}/scripts/lxc_recover.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "Container erfolgreich wiederhergestellt"
-      mainmenu
-    else
-      echoLOG r "Containerwiederherstellung fehlgeschlagen"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "08" ]]; then
-    if bash "${script_path}/scripts/vm_generate.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "Virtuelle Maschine erfolgreich erstellt"
-      mainmenu
-    else
-      echoLOG r "Virtuelle Maschine konnte nicht erstellt werden"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "09" ]]; then
-    if bash "${script_path}/scripts/vm_backup.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "VM-Backup erfolgreich"
-      mainmenu
-    else
-      echoLOG r "VM-Backup fehlgeschlagen"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "10" ]]; then
-    if bash "${script_path}/scripts/vm_delete.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "Virtuelle Maschinen erfolgreich gelöscht"
-      mainmenu
-    else
-      echoLOG r "Virtuelle Maschinen konnten nicht gelöscht werden"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "11" ]]; then
-    if bash "${script_path}/scripts/vm_recover.sh" "${main_language}" "${gh_tag}"; then
-      echoLOG g "Virtuelle Maschinen erfolgreich wiederhergestellt"
-      mainmenu
-    else
-      echoLOG r "Virtuelle Maschinen konnten nicht wiederhergestellt werden"
-      mainmenu
-    fi
-  elif [[ ${choocse} == "12" ]]; then
-    bash "${script_path}/scripts/tools.sh" "${main_language}" "${gh_tag}"
-    mainmenu
-  else
-    echoLOG b "Alles erledigt, Bye :)"
-    cleanup_and_exit
+function menuContainer {
+  gh_tag_container=$(curl --silent "https://api.github.com/repos/shiot/container/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  gh_url_container="https://github.com/shiot/container/archive/refs/tags/${gh_tag_container}.tar.gz"
+  if ${gh_test}; then
+    gh_tag_container="master"
+    gh_url_container="https://github.com/shiot/container/archive/refs/tags/master.tar.gz"
   fi
+
+  while [ 3 ]; do
+    choice_mcontainer=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Operative Systems" "Ich möchte ..." 20 80 10 \
+      "1)" "... einen oder mehrere Container erstellen" \
+      "2)" "... einen oder mehrere Container aktualisieren" \
+      "" "" \
+      "3)" "... ein manuelles Backup von einem oder mehreren Container erstellen" \
+      "4)" "... einen oder mehrere Container aus manuellem Backup wiederherstellen" \
+      "" "" \
+      "5)" "... einen oder mehrere Container löschen" \
+      "" "" \
+      "" "" \
+      "9)" "... zurück zum Hauptmenü"  3>&2 2>&1 1>&3)
+    case $choice_mcontainer in
+      "1)")
+        if ${ct_dev}; then
+          if whip_yesno "JA" "NEIN" "CONTAINER - ERSTELLEN" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
+            repo_ownContainer=$(whip_inputbox "OK" "CONTAINER - ERSTELLEN" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
+            curl -sSL "${repo_ownContainer}" | bash
+          else
+            wget -qc $gh_url_container -O - | tar -xz
+            mv "container-${gh_tag_container}/" "${script_path}/container/"
+            bash "${script_path}/container/start.sh"
+          fi
+        else
+          wget -qc $gh_url_container -O - | tar -xz
+          mv "container-${gh_tag_container}/" "${script_path}/container/"
+          bash "${script_path}/container/start.sh"
+        fi
+      ;;
+      "2)")
+        if ${ct_dev}; then
+          if whip_yesno "JA" "NEIN" "CONTAINER - AKTUALISIEREN" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
+            repo_ownContainer=$(whip_inputbox "OK" "CONTAINER - AKTUALISIEREN" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
+            curl -sSL "${repo_ownContainer}" | bash /dev/stdin update
+          else
+            wget -qc $gh_url_container -O - | tar -xz
+            mv "container-${gh_tag_container}/" "${script_path}/container/"
+            bash "${script_path}/container/start.sh" "update"
+          fi
+        else
+          wget -qc $gh_url_container -O - | tar -xz
+          mv "container-${gh_tag_container}/" "${script_path}/container/"
+          bash "${script_path}/container/start.sh" "update"
+        fi
+      ;;
+      "3)")
+        if bash "${script_path}/scripts/backup_container.sh"; then
+          echoLOG g "Manuelles Backup der/des Container erfolgreich erstellt"
+        else
+          echoLOG r "Manuelles Backup der/des Container nicht erfolgreich"
+        fi
+      ;;
+      "4)")
+        if bash "${script_path}/scripts/restore_container.sh"; then
+          echoLOG g "Container erfolgreich wiederhergestellt"
+        else
+          echoLOG r "Container konnten nicht wiederhergestellt werden"
+        fi
+      ;;
+      "5)")
+        if bash "${script_path}/scripts/delete_container.sh"; then
+          echoLOG g "Container erfolgreich gelöscht"
+        else
+          echoLOG r "Container konnten nicht gelöscht werden"
+        fi
+      ;;
+      "9)")
+        menuMain
+      ;;
+      "") ;;
+    esac
+  done
+}
+
+function menuVMs {
+  gh_tag_vm=$(curl --silent "https://api.github.com/repos/shiot/vm/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  gh_url_vm="https://github.com/shiot/vm/archive/refs/tags/${gh_tag_vm}.tar.gz"
+  if ${gh_test}; then
+    gh_tag_vm="master"
+    gh_url_vm="https://github.com/shiot/vm/archive/refs/tags/master.tar.gz"
+  fi
+  while [ 4 ]; do
+    choice_mvms=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Operative Systems" "Ich möchte ..." 20 80 10 \
+      "1)" "... eine oder mehrere virtuelle Maschinen (VMs) erstellen" \
+      "" "" \
+      "2)" "... ein manuelles Backup von einer oder mehreren virtuellen Maschinen (VMs) erstellen" \
+      "3)" "... eine oder mehrere virtuelle Maschienen (VMs) aus manuellem Backup wiederherstellen" \
+      "" "" \
+      "4)" "... eine oder mehrere virtuelle Maschinen (VMs) löschen" \
+      "" "" \
+      "" "" \
+      "9)" "... zurück zum Hauptmenü"  3>&2 2>&1 1>&3)
+    case $choice_mvms in
+      "1)")
+        if ${ct_dev}; then
+          if whip_yesno "JA" "NEIN" "VM - ERSTELLEN" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
+            repo_ownvm=$(whip_inputbox "OK" "VM - ERSTELLEN" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
+            curl -sSL "${repo_ownvm}" | bash
+          else
+            wget -qc $gh_url_vm -O - | tar -xz
+            mv "vm-${gh_tag_vm}/" "${script_path}/vm/"
+            bash "${script_path}/vm/start.sh"
+          fi
+        else
+          wget -qc $gh_url_vm -O - | tar -xz
+          mv "vm-${gh_tag_vm}/" "${script_path}/vm/"
+          bash "${script_path}/vm/start.sh"
+        fi
+      ;;
+      "2)")
+        if bash "${script_path}/scripts/backup_vm.sh"; then
+          echoLOG g "Manuelles Backup der VM(s) erfolgreich erstellt"
+        else
+          echoLOG r "Manuelles Backup der VM(s) nicht erfolgreich"
+        fi
+      ;;
+      "3)")
+        if bash "${script_path}/scripts/restore_vm.sh"; then
+          echoLOG g "VM(s) erfolgreich wiederhergestellt"
+        else
+          echoLOG r "VM(s) konnten nicht wiederhergestellt werden"
+        fi
+      ;;
+      "4)")
+        if bash "${script_path}/scripts/delete_vm.sh"; then
+          echoLOG g "VM(s) erfolgreich gelöscht"
+        else
+          echoLOG r "VM(s) konnten nicht gelöscht werden"
+        fi
+      ;;
+      "9)")
+        menuMain
+      ;;
+      "") ;;
+    esac
+  done
+}
+
+function menuMain {
+  gh_tag_tools=$(curl --silent "https://api.github.com/repos/shiot/tools/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  gh_url_tools="https://github.com/shiot/tools/archive/refs/tags/${gh_tag_tools}.tar.gz"
+  if ${gh_test}; then
+    gh_tag_tools="master"
+    gh_url_tools="https://github.com/shiot/tools/archive/refs/tags/master.tar.gz"
+  fi
+  while [ 1 ]; do
+    CHOICE=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Operative Systems" "Ich möchte ..." 20 80 10 \
+      "1)" "... meinen HomeServer bearbeiten"   \
+      "2)" "... meine Container (LXC) bearbeiten"  \
+      "3)" "... meine virtuellen Maschinen (VMs) bearbeiten" \
+      "" "" \
+      "4)" "... manuelle Backups erstellen" \
+      "5)" "... manuelle Backups wiederherstellen" \
+      "" "" \
+      "6)" "... weitere Tools von SmartHome-IoT.net anzeigen anzeigen" \
+      "" "" \
+      "" "" \
+      "9)" "... dieses Menü verlassen und das Skript beenden"  3>&2 2>&1 1>&3)
+    case $CHOICE in
+      "1)")
+        menuHost
+      ;;
+      "2)")
+        menuContainer
+      ;;
+      "3)")
+        menuVMs
+      ;;
+      "4)")
+        bash "${script_path}/scripts/backup.sh"; then
+      ;;
+      "5)")
+        bash "${script_path}/scripts/recover.sh"
+      ;;
+      "6)")
+        if ${ct_dev}; then
+          if whip_yesno "JA" "NEIN" "REPOSITORY - TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
+            repo_owntools=$(whip_inputbox "OK" "REPOSITORY - TOOLS" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
+            curl -sSL "${repo_owntools}" | bash
+          else
+            wget -qc $gh_url_tools -O - | tar -xz
+            mv "tools-${gh_tag_tools}/" "${script_path}/tools/"
+            bash "${script_path}/tools/start.sh"
+          fi
+        else
+          wget -qc $gh_url_tools -O - | tar -xz
+          mv "tools-${gh_tag_tools}/" "${script_path}/tools/"
+          bash "${script_path}/tools/start.sh"
+        fi
+      ;;
+      ;;
+      "9)")
+        cleanup_and_exit
+      ;;
+      "") ;;
+    esac
+  done
 }
 
 clear
@@ -141,20 +266,21 @@ if [ -f "${config_path}/.config" ]; then
   if [ -f "${config_path}/${config_file}" ]; then
     source "${config_path}/${config_file}"
     if [[ ${version_mainconfig} != "${config_version}" ]]; then
-      if bash "${script_path}/scripts/create_mainconfig.sh" "${main_language}" "${gh_tag}"; then echoLOG g "Die Konfigurationsdatei wurde aktualisiert"; fi
+      if bash "${script_path}/scripts/create_mainconfig.sh"; then echoLOG g "Die Konfigurationsdatei wurde aktualisiert"; fi
   else
-    echoLOG r "Es konnte keine Konfigurationsdatei gefunden werden, obwohl dieser Server schon Konfiguriert wurde"
+    whip_alert "ERSTELLE/AKTUALISIERE KONFIGURATIONSDATEI" "Obwohl dieser Server konfiguriert wurde, konnte die für dieses Skript benötigte Datei nicht gefunden werden\n\n${config_path}/${config_file}\n\nDieses Skript benötigt diese um fortfahren zu können"
     cleanup_and_exit
   fi
 else
-  if bash "${script_path}/scripts/create_mainconfig.sh" "${main_language}" "${gh_tag}"; then
+  if bash "${script_path}/scripts/create_mainconfig.sh"; then
+    touch "${config_path}/.config"
     echoLOG g "Proxmox HomeServer erfolgreich konfiguriert"
   else
+    touch "${config_path}/.block"
     echoLOG r "Proxmox HomeServer konnte nicht erfolgreich konfigureirt werden"
     echoLOG r "Dieses Skript wird beendet und kann auch nicht erneut ausgeführt werden"
-    touch "${config_path}/.block"
     cleanup_and_exit
   fi
 fi
 
-mainmenu
+menuMain
