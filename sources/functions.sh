@@ -30,6 +30,24 @@ function generateAPIKey() {
   done 
 }
 
+# Function update HomeServer (Host)
+function updateHost() {
+  {
+    echo -e "XXX\n12\nSystemupdate wird ausgeführt ...\nXXX"
+    apt-get update
+    echo -e "XXX\n25\nSystemupdate wird ausgeführt ...\nXXX"
+    apt-get upgrade -y
+    echo -e "XXX\n47\nSystemupdate wird ausgeführt ...\nXXX"
+    apt-get dist-upgrade -y
+    echo -e "XXX\n64\nSystemupdate wird ausgeführt ...\nXXX"
+    apt-get autoremove -y
+    echo -e "XXX\n79\nSystemupdate wird ausgeführt ...\nXXX"
+    pveam update 2>&1
+    echo -e "XXX\n98\nSystemupdate wird ausgeführt ...\nXXX"
+  } | whiptail --gauge --backtitle "© 2021 - SmartHome-IoT.net" --title " SYSTEMVORBEREITUNG " "Dein HomeServer wird auf Systemupdates geprüft ..." 10 80 0
+  return 0
+}
+
 function bak_file() {
   mode=$1
   file=$2
