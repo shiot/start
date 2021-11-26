@@ -65,3 +65,5 @@ wget -qc $gh_url -O - | tar -xz
 mv start-${gh_tag}/ shiot/
 
 bash shiot/start.sh "${main_language}" "${gh_test}" "${ct_dev}"
+
+exit
