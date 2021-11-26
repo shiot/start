@@ -206,10 +206,7 @@ function menuMain {
       "2)" "... meine Container (LXC) bearbeiten"  \
       "3)" "... meine virtuellen Maschinen (VMs) bearbeiten" \
       "" "" \
-      "4)" "... manuelle Backups erstellen" \
-      "5)" "... manuelle Backups wiederherstellen" \
-      "" "" \
-      "6)" "... weitere Tools von SmartHome-IoT.net anzeigen anzeigen" \
+      "4)" "... weitere Tools von SmartHome-IoT.net anzeigen anzeigen" \
       "" "" \
       "" "" \
       "9)" "... dieses Menü verlassen und das Skript beenden"  3>&2 2>&1 1>&3)
@@ -224,12 +221,6 @@ function menuMain {
         menuVMs
       ;;
       "4)")
-        bash "${script_path}/scripts/backup.sh"; then
-      ;;
-      "5)")
-        bash "${script_path}/scripts/recover.sh"
-      ;;
-      "6)")
         if ${ct_dev}; then
           if whip_yesno "JA" "NEIN" "REPOSITORY - TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
             repo_owntools=$(whip_inputbox "OK" "REPOSITORY - TOOLS" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
