@@ -105,7 +105,7 @@ function echoLOG() {
 
 # give an whiptail alert message
 function whip_alert() {
-  #call whip_alert "message"
+  #call whip_alert "title" "message"
   NEWT_COLORS='
       window=black,red
       border=white,red
@@ -117,7 +117,7 @@ function whip_alert() {
 }
 
 function whip_alert_yesno() {
-  #call whip_alert_yesno "message"
+  #call whip_alert_yesno "title" "message"
   NEWT_COLORS='
       window=black,red
       border=white,red
