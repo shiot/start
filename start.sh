@@ -239,7 +239,6 @@ function menuMain {
       "4)")
         bash "${script_path}/tools/start.sh"
       ;;
-      ;;
       "9)")
         cleanup_and_exit
       ;;
