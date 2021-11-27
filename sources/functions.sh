@@ -124,8 +124,10 @@ function whip_alert_yesno() {
       textbox=white,red
       button=black,yellow
     ' \
+    echoLOG r "${4}"
     whiptail --yesno --yes-button " $1 " --no-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "$4" 10 80
-    echoLOG r "${message}"
+    yesno=$?
+    if [ ${yesno} -eq 0 ]; then true; else false; fi
 }
 
 # Functions shows Whiptail
