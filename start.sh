@@ -49,10 +49,29 @@ function menuHost {
 
 function menuContainer {
   gh_tag_container=$(curl --silent "https://api.github.com/repos/shiot/container/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  gh_url_container="https://github.com/shiot/container/archive/refs/tags/${gh_tag_container}.tar.gz"
-  if ${gh_test}; then
-    gh_tag_container="master"
-    gh_url_container="https://github.com/shiot/container/archive/refs/tags/master.tar.gz"
+  if ${gh_test}; then gh_tag_container="master"; fi
+
+  if ${ct_dev}; then
+    ownrepo_container=""
+    if whip_yesno "JA" "NEIN" "CONTAINER" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
+      ownrepo_container=$(whip_inputbox "OK" "CONTAINER" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/container.git")
+    fi
+  fi
+
+  mkdir "${script_path}/container"
+  git clone --branch ${gh_tag_container} https://github.com/shiot/container.git "${script_path}/container"
+
+  if [ -n "${ownrepo_container}" ]; then
+    reponame="$(echo ${ownrepo_container} | cut -d/ -f5 | cut -d. -f1)"
+    repouser="$(echo $ownrepo_container | cut -d/ -f4)"
+    repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -z "${repotag}" ]; then
+      repotag=$(whip_inputbox "OK" "CONTAINER" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
+    fi
+    mkdir "${script_path}/container_tmp"
+    git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/container_tmp"
+    cp -rvf "${script_path}/container_tmp/*" "${script_path}/container"
+    rm -rf "${script_path}/container_tmp"
   fi
 
   while [ 3 ]; do
@@ -69,36 +88,10 @@ function menuContainer {
       "9)" "... zurück zum Hauptmenü"  3>&2 2>&1 1>&3)
     case $choice_mcontainer in
       "1)")
-        if ${ct_dev}; then
-          if whip_yesno "JA" "NEIN" "CONTAINER - ERSTELLEN" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
-            repo_ownContainer=$(whip_inputbox "OK" "CONTAINER - ERSTELLEN" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
-            curl -sSL "${repo_ownContainer}" | bash
-          else
-            wget -qc $gh_url_container -O - | tar -xz
-            mv "container-${gh_tag_container}/" "${script_path}/container/"
-            bash "${script_path}/container/start.sh"
-          fi
-        else
-          wget -qc $gh_url_container -O - | tar -xz
-          mv "container-${gh_tag_container}/" "${script_path}/container/"
-          bash "${script_path}/container/start.sh"
-        fi
+        bash "${script_path}/container/create.sh"
       ;;
       "2)")
-        if ${ct_dev}; then
-          if whip_yesno "JA" "NEIN" "CONTAINER - AKTUALISIEREN" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
-            repo_ownContainer=$(whip_inputbox "OK" "CONTAINER - AKTUALISIEREN" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
-            curl -sSL "${repo_ownContainer}" | bash /dev/stdin update
-          else
-            wget -qc $gh_url_container -O - | tar -xz
-            mv "container-${gh_tag_container}/" "${script_path}/container/"
-            bash "${script_path}/container/start.sh" "update"
-          fi
-        else
-          wget -qc $gh_url_container -O - | tar -xz
-          mv "container-${gh_tag_container}/" "${script_path}/container/"
-          bash "${script_path}/container/start.sh" "update"
-        fi
+        bash "${script_path}/container/update.sh"
       ;;
       "3)")
         if bash "${script_path}/scripts/backup_container.sh"; then
@@ -131,11 +124,31 @@ function menuContainer {
 
 function menuVMs {
   gh_tag_vm=$(curl --silent "https://api.github.com/repos/shiot/vm/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  gh_url_vm="https://github.com/shiot/vm/archive/refs/tags/${gh_tag_vm}.tar.gz"
-  if ${gh_test}; then
-    gh_tag_vm="master"
-    gh_url_vm="https://github.com/shiot/vm/archive/refs/tags/master.tar.gz"
+  if ${gh_test}; then gh_tag_vm="master"; fi
+
+  if ${ct_dev}; then
+    ownrepo_vm=""
+    if whip_yesno "JA" "NEIN" "VM" "Möchtest Du ein eigenes gitHub-Repository für virtuelle Maschinen (VMs) angeben?"; then
+      ownrepo_vm=$(whip_inputbox "OK" "VM" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/vm.git")
+    fi
   fi
+
+  mkdir "${script_path}/vm"
+  git clone --branch ${gh_tag_vm} https://github.com/shiot/vm.git "${script_path}/vm"
+
+  if [ -n "${ownrepo_vm}" ]; then
+    reponame="$(echo ${ownrepo_vm} | cut -d/ -f5 | cut -d. -f1)"
+    repouser="$(echo $ownrepo_vm | cut -d/ -f4)"
+    repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -z "${repotag}" ]; then
+      repotag=$(whip_inputbox "OK" "VM" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
+    fi
+    mkdir "${script_path}/vm_tmp"
+    git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/vm_tmp"
+    cp -rvf "${script_path}/vm_tmp/*" "${script_path}/vm"
+    rm -rf "${script_path}/vm_tmp"
+  fi
+
   while [ 4 ]; do
     choice_mvms=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Operative Systems" "Ich möchte ..." 20 80 10 \
       "1)" "... eine oder mehrere virtuelle Maschinen (VMs) erstellen" \
@@ -149,27 +162,10 @@ function menuVMs {
       "9)" "... zurück zum Hauptmenü"  3>&2 2>&1 1>&3)
     case $choice_mvms in
       "1)")
-        if ${ct_dev}; then
-          if whip_yesno "JA" "NEIN" "VM - ERSTELLEN" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
-            repo_ownvm=$(whip_inputbox "OK" "VM - ERSTELLEN" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
-            curl -sSL "${repo_ownvm}" | bash
-          else
-            wget -qc $gh_url_vm -O - | tar -xz
-            mv "vm-${gh_tag_vm}/" "${script_path}/vm/"
-            bash "${script_path}/vm/start.sh"
-          fi
-        else
-          wget -qc $gh_url_vm -O - | tar -xz
-          mv "vm-${gh_tag_vm}/" "${script_path}/vm/"
-          bash "${script_path}/vm/start.sh"
-        fi
+        bash "${script_path}/vm/create.sh"
       ;;
       "2)")
-        if bash "${script_path}/scripts/backup_vm.sh"; then
-          echoLOG g "Manuelles Backup der VM(s) erfolgreich erstellt"
-        else
-          echoLOG r "Manuelles Backup der VM(s) nicht erfolgreich"
-        fi
+        bash "${script_path}/vm/update.sh"
       ;;
       "3)")
         if bash "${script_path}/scripts/restore_vm.sh"; then
@@ -195,11 +191,31 @@ function menuVMs {
 
 function menuMain {
   gh_tag_tools=$(curl --silent "https://api.github.com/repos/shiot/tools/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  gh_url_tools="https://github.com/shiot/tools/archive/refs/tags/${gh_tag_tools}.tar.gz"
-  if ${gh_test}; then
-    gh_tag_tools="master"
-    gh_url_tools="https://github.com/shiot/tools/archive/refs/tags/master.tar.gz"
+  if ${gh_test}; then gh_tag_tools="master"; fi
+
+  if ${ct_dev}; then
+    ownrepo_tools=""
+    if whip_yesno "JA" "NEIN" "TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Tools angeben?"; then
+      ownrepo_tools=$(whip_inputbox "OK" "TOOLS" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/tools.git")
+    fi
   fi
+
+  mkdir "${script_path}/tools"
+  git clone --branch ${gh_tag_tools} https://github.com/shiot/tools.git "${script_path}/tools"
+
+  if [ -n "${ownrepo_tools}" ]; then
+    reponame="$(echo ${ownrepo_tools} | cut -d/ -f5 | cut -d. -f1)"
+    repouser="$(echo ${ownrepo_tools} | cut -d/ -f4)"
+    repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -z "${repotag}" ]; then
+      repotag=$(whip_inputbox "OK" "TOOLS" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
+    fi
+    mkdir "${script_path}/tools_tmp"
+    git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/tools_tmp"
+    cp -rvf "${script_path}/tools_tmp/*" "${script_path}/tools"
+    rm -rf "${script_path}/tools_tmp"
+  fi
+
   while [ 1 ]; do
     CHOICE=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Operative Systems" "Ich möchte ..." 20 80 10 \
       "1)" "... meinen HomeServer bearbeiten"   \
@@ -221,20 +237,7 @@ function menuMain {
         menuVMs
       ;;
       "4)")
-        if ${ct_dev}; then
-          if whip_yesno "JA" "NEIN" "REPOSITORY - TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
-            repo_owntools=$(whip_inputbox "OK" "REPOSITORY - TOOLS" "Wie lautet die RAW-Adresse zu Deinem Repository Startskript?" "https://raw.githubusercontent.com/USERNAME/REPOSITORYNAME/master/start.sh")
-            curl -sSL "${repo_owntools}" | bash
-          else
-            wget -qc $gh_url_tools -O - | tar -xz
-            mv "tools-${gh_tag_tools}/" "${script_path}/tools/"
-            bash "${script_path}/tools/start.sh"
-          fi
-        else
-          wget -qc $gh_url_tools -O - | tar -xz
-          mv "tools-${gh_tag_tools}/" "${script_path}/tools/"
-          bash "${script_path}/tools/start.sh"
-        fi
+        bash "${script_path}/tools/start.sh"
       ;;
       ;;
       "9)")
