@@ -28,7 +28,7 @@ if [[ ${mode} == "all" ]]; then
   for lxc in $(pct list | sed '1d' | awk '{print $1}'); do
     name=$(pct list | grep ${lxc} | awk '{print $3}')
     echoLOG y "Beginne mit dem Löschvorgang von Gast >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
-    if whip_alert_yesno "${whip_title}" "Bist Du sicher das Du den Container\nID:   ${lxc}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
+    if whip_alert_yesno "JA" "NEIN" "${whip_title}" "Bist Du sicher das Du den Container\nID:   ${lxc}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
       if [ $(pct status ${lxc} | grep -c "running") -eq 1 ]; then
         echoLOG b "Das Gastsystem wird runtergefahren, um löschen zu können"
         pct shutdown ${lxc} --forceStop 1 --timeout 10 > /dev/null 2>&1
@@ -61,7 +61,7 @@ else
   for lxc in $choice; do
     name=$(pct list | grep ${lxc} | awk '{print $3}')
     echoLOG y "Beginne mit dem Löschvorgang von Gast >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
-    if whip_alert_yesno "${whip_title}" "Bist Du sicher das Du den Container\nID:   ${lxc}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
+    if whip_alert_yesno "JA" "NEIN" "${whip_title}" "Bist Du sicher das Du den Container\nID:   ${lxc}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
       if [ $(pct status ${lxc} | grep -c "running") -eq 1 ]; then
         echoLOG b "Das Gastsystem wird runtergefahren, um es löschen zu können"
         pct shutdown ${lxc} --forceStop 1 --timeout 10 > /dev/null 2>&1

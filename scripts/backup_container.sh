@@ -18,7 +18,7 @@ fi
 
 # Check if there are already manual backups
 if ls /mnt/pve/backups/dump/*_manual.tar.zst 1> /dev/null 2>&1; then
-  if whip_alert_yesno "${whip_title}" "Alle vorhandenen, manuell erstellte Containersicherungen in Deinem Backupverzeichnis werden gelöscht. Wenn Du sie behalten möchtest, sicher sie, bevor Du fortfährst. Dies gilt nicht für Sicherungen, die automatisch von Proxmox erstellt wurden.\n\nFortfahren?"; then
+  if whip_alert_yesno "JA" "NEIN" "${whip_title}" "Alle vorhandenen, manuell erstellte Containersicherungen in Deinem Backupverzeichnis werden gelöscht. Wenn Du sie behalten möchtest, sicher sie, bevor Du fortfährst. Dies gilt nicht für Sicherungen, die automatisch von Proxmox erstellt wurden.\n\nFortfahren?"; then
     rm /mnt/pve/backups/dump/*_manual*
   else
     exit 1

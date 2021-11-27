@@ -16,6 +16,66 @@ fi
 
 whip_title="ERSTELLE/AKTUALISIERE KONFIGURATIONSDATEI"
 
+function fristRun() {
+  whip_title_fr="ERSTSTART"
+  # configure Community Repository in Proxmox
+  echoLOG b "Das Proxmox Repository von Enterprise zu Community geändert"
+  echo "#deb https://enterprise.proxmox.com/debian/pve ${pve_osname} pve-enterprise" > /etc/apt/sources.list.d/pve-enterprise.list
+  echo "deb http://download.proxmox.com/debian/pve ${pve_osname} pve-no-subscription" > /etc/apt/sources.list.d/pve-community.list
+
+  {
+  # Performs a system update and installs software required for this script
+    apt-get update 2>&1 >/dev/null
+    echo -e "XXX\n29\nInstalliere nicht vorhandene, benötigte Software Pakete ...\nXXX"
+    apt-get install -y parted smartmontools libsasl2-modules mailutils git lxc-pve 2>&1 >/dev/null
+    echo -e "XXX\n87\nInitiales Systemupdate wird ausgeführt ...\nXXX"
+    apt-mark hold keyboard-configuration
+    apt-get upgrade -y 2>&1 >/dev/null
+    apt-get dist-upgrade -y 2>&1 >/dev/null
+    apt-get autoremove -y 2>&1 >/dev/null
+    apt-mark unhold keyboard-configuration
+    pveam update 2>&1 >/dev/null
+    echo -e "XXX\n98\nSystemvorbereitungen werden beendet ...\nXXX"
+  } | whiptail --gauge --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title_fr} " "\nDein HomeServer wird auf Systemupdates geprüft, eventuell benötigte Software wird installiert ..." 10 80 0
+  echoLOG g "Updates und benötigte Software wurden installiert"
+
+  # If no Config File is found, ask User to recover or to make a new Configuration
+  if [ ! -f "$shiot_configPath/$shiot_configFile" ]; then
+    if whip_alert_yesno "RECOVER" "KONFIG" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
+      if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
+      if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
+        cfg_IP=
+        while ! pingIP $cfg_IP; do
+          cfg_IP=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet die IP-Adresse des Gerätes, auf dem sich die Freigabe befindet?" "$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3).")
+        done
+        cfg_dir=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Ordnerpfad, in dem die Datei zu finden ist (ohne \\ oder / am Anfang oder Ende)?" "Path/to/File")
+        cfg_filename=$(whip_inputbox "OK" "${whip_title_fr}" "Wie heißt die Datei, die die Konfigurationsvariablen enthält?" "SHIoT_configuration.txt")
+        cfg_mountUser=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Benutzername des Benutzers der Leserechte auf dieser Freigabe hat?" "netrobot")
+        cfg_mountPass=$(whip_inputbox_password "OK" "${whip_title_fr}" "Wie lautet das Passwort von diesem Benutzer?")
+        mount -t cifs -o user="$cfg_mountUser",password="$cfg_mountPass",rw,file_mode=0777,dir_mode=0777 //$cfg_IP/$cfg_dir /mnt/cfg_temp > /dev/null 2>&1
+        cp "/mnt/cfg_temp/$cfg_filename" "${config_path}/${config_file}" > /dev/null 2>&1
+        umount "/mnt/cfg_temp" > /dev/null 2>&1
+      else # ask for local or external file
+        if whip_yesno "DATENTRÄGER" "SERVER" "${whip_title_fr}" "Hast Du die Datei schon auf deinen Server kopiert, oder befindet sie sich auf einem externen Datenträger?"; then # Mount USB Media and copy File
+          cfg_disk=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Pfad zu deinem USB-Gerät? (siehe WebGUI -> Server -> Disks)" "/dev/sdc")
+          cfg_dir=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Ordnerpfad, in dem die Datei zu finden ist (ohne \\ oder / am Anfang oder Ende)?" "Path/to/File")
+          cfg_filename=$(whip_inputbox "OK" "${whip_title_fr}" "Wie heißt die Datei, die die Konfigurationsvariablen enthält?" "SHIoT_configuration.txt")
+          mount $cfg_disk "/mnt/cfg_temp"
+          cp "/mnt/cfg_temp/$cfg_dir/$cfg_filename" "${config_path}/${config_file}" > /dev/null 2>&1
+          umount $cfg_disk
+          echoLOG g "${txt_0019}: $cfg_disk/$cfg_dir"
+        elif [ $yesno -eq 1 ]; then # copy File
+          cfg_path=$(whip_inputbox "OK" "${whip_title_fr}" "${txt_0022}")
+          cfg_filename=$(whip_inputbox "OK" "${whip_title_fr}" "${txt_0016}")
+          cp "/$cfg_path/$cfg_filename" "${config_path}/${config_file}" > /dev/null 2>&1
+        fi
+      fi
+      echoLOG g "Die Konfigurationsdatei wurde erfolgreich kopiert"
+      rm "/mnt/cfg_temp/" > /dev/null 2>&1
+    fi
+  fi
+}
+
 function vlan() {
 # Set Networkconfiguration
   if whip_yesno "JA" "NEIN" "${whip_title}" "Nutzt Du VLANs in deinem Netzwerk?"; then
@@ -345,6 +405,8 @@ function write_config() {
     echo -e "pve_datadiskname=\"local\"" >> "${config_path}/${config_file}"
   fi
 }
+
+if [ ! -f "${config_path}/.config" ]; then fristRun; fi
 
 vlan
 netrobot

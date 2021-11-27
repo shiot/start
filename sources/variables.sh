@@ -1,6 +1,9 @@
 #!/bin/bash
 version_mainconfig="1.0.0"
 
+# Proxmox Hostsystem
+pve_osname=$(cat /etc/os-release | grep VERSION_CODENAME | cut -d= -f2)
+
 # config path and files stored in it
 config_path="/opt/smarthome-iot.net"
 config_file="config.sh"

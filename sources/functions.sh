@@ -117,14 +117,14 @@ function whip_alert() {
 }
 
 function whip_alert_yesno() {
-  #call whip_alert_yesno "title" "message"
+  #call whip_alert_yesno "btn1" "btn2" "title" "message"
   NEWT_COLORS='
       window=black,red
       border=white,red
       textbox=white,red
       button=black,yellow
     ' \
-    whiptail --yesno --yes-button " JA " --no-button " NEIN " --backtitle "© 2021 - SmartHome-IoT.net" --title " $1 " "$2" 10 80
+    whiptail --yesno --yes-button " $1 " --no-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "$4" 10 80
     echoLOG r "${message}"
 }
 
@@ -142,8 +142,8 @@ function whip_inputbox() {
 }
 
 function whip_inputbox_password() {
-  #call whip_inputbox "btn1" "title" "message" "default value"
-  input=$(whiptail --passwordbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "$3" 10 80 "$4" 3>&1 1>&2 2>&3)
+  #call whip_inputbox "btn1" "title" "message"
+  input=$(whiptail --passwordbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "$3" 10 80 3>&1 1>&2 2>&3)
   echo "$input"
 }
 

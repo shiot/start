@@ -28,7 +28,7 @@ if [[ ${mode} == "all" ]]; then
   for vm in $(qm list | sed '1d' | awk '{print $1}'); do
     name=$(qm list | grep ${vm} | awk '{print $2}')
     echoLOG y "Beginne mit dem Löschvorgang von Gast >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
-    if whip_alert_yesno "${whip_title}" "Bist Du sicher das Du die virtuelle Maschine (VM)\nID:   ${vm}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
+    if whip_alert_yesno "JA" "NEIN" "${whip_title}" "Bist Du sicher das Du die virtuelle Maschine (VM)\nID:   ${vm}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
       if [ $(qm status ${vm} | grep -c "running") -eq 1 ]; then
         echoLOG b "Das Gastsystem wird runtergefahren, um löschen zu können"
         qm shutdown ${vm} --forceStop 1 --timeout 10 > /dev/null 2>&1
@@ -61,7 +61,7 @@ else
   for vm in $choice; do
     name=$(qm list | grep ${vm} | awk '{print $2}')
     echoLOG y "Beginne mit dem Löschvorgang von Gast >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
-    if whip_alert_yesno "${whip_title}" "Bist Du sicher das Du die virtuelle Maschine (VM)\nID:   ${vm}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
+    if whip_alert_yesno "JA" "NEIN" "${whip_title}" "Bist Du sicher das Du die virtuelle Maschine (VM)\nID:   ${vm}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
       if [ $(qm status ${vm} | grep -c "running") -eq 1 ]; then
         echoLOG b "Das Gastsystem wird runtergefahren, um es löschen zu können"
         qm shutdown ${vm} --forceStop 1 --timeout 10 > /dev/null 2>&1
