@@ -41,7 +41,7 @@ function fristRun() {
 
   # If no Config File is found, ask User to recover or to make a new Configuration
   if [ ! -f "$shiot_configPath/$shiot_configFile" ]; then
-    if whip_alert_yesno "RECOVER" "KONFIG" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
+    if whip_alert_yesno "KONFIG" "RECOVER" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
       if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
       if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
         cfg_IP=
