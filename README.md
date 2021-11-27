@@ -9,7 +9,7 @@ Ich habe dieses neue Repository aufgrund eurer Rückmeldungen erstellt und das S
 
 Aber nun viel Spaß mit deinem neuen Home Server, starten kannst Du mit diesem einfachen Befehl auf der Proxmox Konsole.
 ```bash
-curl -sSL enter.smarthome-iot.net | bash
+curl -sSL start.smarthome-iot.net | bash
 ```
 Weitere Informationen findest Du in meinem [Blog](https://smarthome-iot.net)
 
@@ -22,6 +22,6 @@ I created this new repository based on your feedback and completely reworked the
 
 But now have fun with your new home server, you can start with this simple command on the Proxmox console.
 ```bash
-curl -sSL enter.smarthome-iot.net | bash
+curl -sSL start.smarthome-iot.net | bash
 ```
 You can find more information in my [blog](https://smarthome-iot.net)
