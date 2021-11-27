@@ -132,7 +132,8 @@ function whip_alert_yesno() {
 function whip_yesno() {
   #call whip_yesno "btn1" "btn2" "title" "message"
   whiptail --yesno --yes-button " $1 " --no-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "$4" 10 80
-  return $?
+  yesno=$?
+  if [ ${yesno} -eq 0 ]; then true; else false; fi
 }
 
 function whip_inputbox() {
