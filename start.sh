@@ -259,7 +259,10 @@ if [ -f "${config_path}/.config" ]; then
   if [ -f "${config_path}/${config_file}" ]; then
     source "${config_path}/${config_file}"
     if [[ ${version_mainconfig} != "${config_version}" ]]; then
-      if bash "${script_path}/scripts/create_mainconfig.sh"; then echoLOG g "Die Konfigurationsdatei wurde aktualisiert"; fi
+      if bash "${script_path}/scripts/create_mainconfig.sh"; then
+        echoLOG g "Die Konfigurationsdatei wurde aktualisiert"
+      fi
+    fi
   else
     whip_alert "ERSTELLE/AKTUALISIERE KONFIGURATIONSDATEI" "Obwohl dieser Server konfiguriert wurde, konnte die für dieses Skript benötigte Datei nicht gefunden werden\n\n${config_path}/${config_file}\n\nDieses Skript benötigt diese um fortfahren zu können"
     cleanup_and_exit
