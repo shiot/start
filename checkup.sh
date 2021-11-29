@@ -30,6 +30,7 @@ gh_test=false
 ct_dev=false
 
 gh_tag=$(curl --silent "https://api.github.com/repos/shiot/start/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+if [ -z "${gh_tag}" ]; then gh_tag="master"; fi
 gh_url="https://github.com/shiot/start/archive/refs/tags/${gh_tag}.tar.gz"
 
 if [ -n "$1" ]; then
@@ -41,8 +42,6 @@ if [ -n "$1" ]; then
     ct_dev=true
   fi
 fi
-
-if [ -z "${gh_tag}" ]; then gh_tag="master"; fi
 
 # Ask for Language
 source <(curl -sSL https://raw.githubusercontent.com/shiot/start/${gh_tag}/list_language.sh)
