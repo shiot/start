@@ -14,6 +14,8 @@ source ${script_path}/sources/variables.sh            # Variables needed in this
 source ${script_path}/language/${main_language}.sh    # Language Variables in this Script
 source ${script_path}/images/logo.sh                  # Logo in the Shell
 
+if [ ! -d "${config_path}" ]; then mkdir -p "${config_path}"; fi
+
 # Unique functions
 function menuHost {
   while [ 2 ]; do

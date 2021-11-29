@@ -141,13 +141,13 @@ function whip_yesno() {
 function whip_inputbox() {
   #call whip_inputbox "btn1" "title" "message" "default value"
   input=$(whiptail --inputbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "$3" 10 80 "$4" 3>&1 1>&2 2>&3)
-  echo "$input"
+  echo "${input}"
 }
 
 function whip_inputbox_password() {
   #call whip_inputbox "btn1" "title" "message"
   input=$(whiptail --passwordbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "$3" 10 80 3>&1 1>&2 2>&3)
-  echo "$input"
+  echo "${input}"
 }
 
 function lxc_mountNAS() {
