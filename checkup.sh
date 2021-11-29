@@ -61,6 +61,9 @@ else
   cleanup_and_exit
 fi
 
+echo "Tag: $gh_tag"
+echo "URL: $gh_url"
+
 wget -qc $gh_url -O - | tar -xz
 mv start-${gh_tag}/ shiot/
 
