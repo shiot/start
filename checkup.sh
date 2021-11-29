@@ -42,8 +42,7 @@ if [ -n "$1" ]; then
   fi
 fi
 
-echo "Tag: $gh_tag"
-echo "URL: $gh_url"
+if [ -z "${gh_tag}" ]; then gh_tag="master"; fi
 
 # Ask for Language
 source <(curl -sSL https://raw.githubusercontent.com/shiot/start/${gh_tag}/list_language.sh)
