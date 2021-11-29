@@ -42,6 +42,9 @@ if [ -n "$1" ]; then
   fi
 fi
 
+echo "Tag: $gh_tag"
+echo "URL: $gh_url"
+
 # Ask for Language
 source <(curl -sSL https://raw.githubusercontent.com/shiot/start/${gh_tag}/list_language.sh)
 main_language=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Language - Sprache" "Select your Language" 20 80 10 "${lng[@]}" 3>&1 1>&2 2>&3)
@@ -60,9 +63,6 @@ else
   whip_alert "Es wurde keine Proxmox Installation gefunden. Dieses Skript kann nur auf Servern mit installiertem Proxmox ausgeführt werden!"
   cleanup_and_exit
 fi
-
-echo "Tag: $gh_tag"
-echo "URL: $gh_url"
 
 wget -qc $gh_url -O - | tar -xz
 mv start-${gh_tag}/ shiot/
