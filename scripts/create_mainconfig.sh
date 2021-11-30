@@ -40,7 +40,7 @@ function fristRun() {
   echoLOG g "Updates und benötigte Software wurden installiert"
 
   # If no Config File is found, ask User to recover or to make a new Configuration
-  if [ ! -f "$shiot_configPath/$shiot_configFile" ]; then
+  if [ ! -f "${shiot_configPath}/${shiot_configFile}" ]; then
     if whip_alert_yesno "RECOVER" "KONFIG" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
       if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
       if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
@@ -191,8 +191,8 @@ function nas() {
                 "2" "... QNAP"\
                 "3" "... anderer")
       for N in $(seq 1 5); do
-        nas_IP=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die IP-Adresse deiner NAS?" "${nas_IP}")
-        if pingIP $nas_IP; then
+        nas_ip=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die IP-Adresse deiner NAS?" "${nas_ip}")
+        if pingIP $nas_ip; then
           nas_manufactur=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title} " "\nMein NAS Hersteller heisst..." 20 80 10 "${menu_nas[@]}" 3>&1 1>&2 2>&3)
           if [ $nas_manufactur -eq 1 ]; then
             nas_synology=true
@@ -220,8 +220,8 @@ function nas() {
                 "2" "... QNAP"\
                 "3" "... anderer")
       for N in $(seq 1 5); do
-        nas_IP=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die IP-Adresse deiner NAS?" "$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3)")
-        if pingIP $nas_IP; then
+        nas_ip=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die IP-Adresse deiner NAS?" "$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3)")
+        if pingIP ${nas_ip}; then
           nas_manufactur=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title} " "\nMein NAS Hersteller heisst..." 20 80 10 "${menu_nas[@]}" 3>&1 1>&2 2>&3)
           if [ $nas_manufactur -eq 1 ]; then
             nas_synology=true
@@ -302,7 +302,7 @@ function write_config() {
   echo -e "\0043 NOTICE: Backup Proxmox Configuration Script from SmartHome-IoT.net" >> "${config_path}/${config_file}"
   echo -e "\0043 Created on $(date)" >> "${config_path}/${config_file}"
   echo -e "\n\0043 General configuration" >> "${config_path}/${config_file}"
-  echo -e "config_version=\"${main_config_version}\"" >> "${config_path}/${config_file}"
+  echo -e "config_version=\"${version_mainconfig}\"" >> "${config_path}/${config_file}"
   echo -e "main_language=\"${main_language}\"" >> "${config_path}/${config_file}"
   echo -e "\n\0043 Network configuration" >> "${config_path}/${config_file}"
   echo -e "network_ip=\"$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3)\"" >> "${config_path}/${config_file}"
@@ -413,6 +413,8 @@ netrobot
 nas
 smtp
 write_config
+
+exit 0
 
 if [ -f "${config_path}/${config_file}" ]; then
   if $update; then
