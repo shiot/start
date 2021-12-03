@@ -128,9 +128,9 @@ function vlan() {
       vlan_guest_gw=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die Gateway-IP deines Gastnetzwerk?")
     fi
     if $update; then
-      vlan_guest_cidr=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die Gateway-IP deines Gastnetzwerk?" "${vlan_guest_cidr}")
+      vlan_guest_cidr=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die CIDR deines Gastnetzwerk?" "${vlan_guest_cidr}")
     else
-      vlan_guest_cidr=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die Gateway-IP deines Gastnetzwerk?" "24")
+      vlan_guest_cidr=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die CIDR deines Gastnetzwerk?" "24")
     fi
     if [ -f "${tmp_vlan}" ]; then rm "${tmp_vlan}"; fi
     touch "${tmp_vlan}"
@@ -172,7 +172,7 @@ function netrobot() {
 # config Netrobot
   if $update; then
     robot_name=$(whip_inputbox "OK" "${whip_title}" "Wie lautet der Benutzername, den Du deinem Netzwerkroboter zugewiesen hast?" "${robot_name}")
-    robot_pw=$(whip_inputbox "OK" "${whip_title}" "Wie lautet das Passwort, welches Du deinem Netzwerkroboter zugewiesen hast?" "${robot_pw}")
+    robot_pw=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches Du deinem Netzwerkroboter zugewiesen hast?" "${robot_pw}")
   else
     robot_name=$(whip_inputbox "OK" "${whip_title}" "Wie lautet der Benutzername, den Du deinem Netzwerkroboter zugewiesen hast?" "netrobot")
     robot_pw=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches Du deinem Netzwerkroboter zugewiesen hast?\nWenn Du hier kein Passwort eingibst, wird automatisch ein sicheres 26-Zeichen langes Passwort erstellt.")
@@ -339,9 +339,9 @@ function write_config() {
     echo -e "vlan_guest_gw=\"${vlan_guest_gw}\"" >> "${config_path}/${config_file}"
     echo -e "vlan_guest_cidr=\"${vlan_guest_cidr}\"" >> "${config_path}/${config_file}"
     vlan_other=$(cat "${tmp_vlan}")
-    if [ -n $vlan_other ]; then
+    if [ -n "${vlan_other}" ]; then
       echo -e "vlan_other=true" >> "${config_path}/${config_file}"
-      echo $(cat "${tmp_vlan}") >> "${config_path}/${config_file}"
+      echo $(echo $vlan_other | sed -e 's/\t\| \+/\n/g') >> "${config_path}/${config_file}"
     else
       echo -e "vlan_other=false" >> "${config_path}/${config_file}"
     fi
@@ -396,9 +396,9 @@ function write_config() {
   echo -e "pve_versioncode=\"$(cat /etc/os-release | grep VERSION_CODENAME | cut -d= -f2)\"" >> "${config_path}/${config_file}"
   echo -e "pve_ip=\"$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1)\"" >> "${config_path}/${config_file}"
   echo -e "pve_timezone=\"$(timedatectl | grep "Time zone" | awk '{print $3}')\"" >> "${config_path}/${config_file}"
-  echo -e "pve_rootdisk=\"$(eval $(lsblk -oMOUNTPOINT,PKNAME -P | grep 'MOUNTPOINT="/"'); echo $PKNAME | sed 's|[0-9]*$||')\"" >>  "${config_path}/${config_file}"
-  if [[ $(cat /sys/block/$(lsblk -nd --output NAME | grep "s" | sed "s|$pve_rootdisk||" | sed ':M;N;$!bM;s|\n||g')/queue/rotational) -eq 0 ]]; then
-    echo -e "pve_datadisk=\"$(lsblk -nd --output NAME | grep "s" | sed "s|$pve_rootdisk||" | sed ':M;N;$!bM;s|\n||g')\"" >> "${config_path}/${config_file}"
+  echo -e "pve_rootdisk=$(eval $(lsblk -oMOUNTPOINT,PKNAME -P | grep 'MOUNTPOINT="/"'); echo $PKNAME | sed 's|[0-9]*$||')" >>  "${config_path}/${config_file}"
+  if [[ $(cat /sys/block/$(lsblk -nd --output NAME | grep "sd" | sed "s|$pve_rootdisk||" | sed ':M;N;$!bM;s|\n||g')/queue/rotational) -eq 0 ]]; then
+    echo -e "pve_datadisk=\"$(lsblk -nd --output NAME | grep "sd" | sed "s|$pve_rootdisk||" | sed ':M;N;$!bM;s|\n||g')\"" >> "${config_path}/${config_file}"
     echo -e "pve_datadiskname=\"data\"" >> "${config_path}/${config_file}"
   else
     echo -e "pve_datadisk=\"\"" >> "${config_path}/${config_file}"

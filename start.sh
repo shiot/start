@@ -192,19 +192,6 @@ function menuVMs {
 }
 
 function menuMain {
-  gh_tag_tools=$(curl --silent "https://api.github.com/repos/shiot/tools/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  if ${gh_test}; then gh_tag_tools="master"; fi
-
-  if ${ct_dev}; then
-    ownrepo_tools=""
-    if whip_yesno "JA" "NEIN" "TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Tools angeben?"; then
-      ownrepo_tools=$(whip_inputbox "OK" "TOOLS" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/tools.git")
-    fi
-  fi
-
-  mkdir "${script_path}/tools"
-  git clone --branch ${gh_tag_tools} https://github.com/shiot/tools.git "${script_path}/tools"
-
   if [ -n "${ownrepo_tools}" ]; then
     reponame="$(echo ${ownrepo_tools} | cut -d/ -f5 | cut -d. -f1)"
     repouser="$(echo ${ownrepo_tools} | cut -d/ -f4)"
@@ -224,7 +211,7 @@ function menuMain {
       "2)" "... meine Container (LXC) bearbeiten"  \
       "3)" "... meine virtuellen Maschinen (VMs) bearbeiten" \
       "" "" \
-      "4)" "... weitere Tools von SmartHome-IoT.net anzeigen anzeigen" \
+      "4)" "... weitere Tools von SmartHome-IoT.net anzeigen" \
       "" "" \
       "" "" \
       "9)" "... dieses Menü verlassen und das Skript beenden"  3>&2 2>&1 1>&3)
@@ -239,6 +226,18 @@ function menuMain {
         menuVMs
       ;;
       "4)")
+        gh_tag_tools=$(curl --silent "https://api.github.com/repos/shiot/tools/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        if ${gh_test}; then gh_tag_tools="master"; fi
+
+        if ${ct_dev}; then
+          ownrepo_tools=""
+          if whip_yesno "JA" "NEIN" "TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Tools angeben?"; then
+            ownrepo_tools=$(whip_inputbox "OK" "TOOLS" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/tools.git")
+          fi
+        fi
+
+        mkdir "${script_path}/tools"
+        git clone --branch ${gh_tag_tools} https://github.com/shiot/tools.git "${script_path}/tools"
         bash "${script_path}/tools/start.sh"
       ;;
       "9)")
