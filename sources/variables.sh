@@ -30,3 +30,6 @@ LIGHTBLUE='\033[1;34m'
 LIGHTPURPLE='\033[1;35m'
 LIGHTCYAN='\033[1;36m'
 WHITE='\033[1;37m'
+
+# configuration
+needed_packages="parted smartmontools libsasl2-modules mailutils git lxc-pve"

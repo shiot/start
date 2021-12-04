@@ -35,7 +35,7 @@ function menuHost {
         fi
       ;;
       "2)")
-        if bash "${script_path}/scripts/create_mainconfig.sh" "update"; then
+        if bash "${script_path}/scripts/pve_mainconfig.sh"; then
           echoLOG g "HomeServer konfiguration erfolgreich geändert"
         else
           echoLOG r "HomeServer konfiguration konnte nicht geändert werden"
@@ -53,27 +53,25 @@ function menuContainer {
   gh_tag_container=$(curl --silent "https://api.github.com/repos/shiot/container/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
   if ${gh_test}; then gh_tag_container="master"; fi
 
+  mkdir "${script_path}/container"
+  git clone --branch ${gh_tag_container} https://github.com/shiot/container.git "${script_path}/container"
+
+  #If developer, ask for cloning own lxc repository from github
   if ${ct_dev}; then
     ownrepo_container=""
     if whip_yesno "JA" "NEIN" "CONTAINER" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
       ownrepo_container=$(whip_inputbox "OK" "CONTAINER" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/container.git")
+      reponame="$(echo ${ownrepo_container} | cut -d/ -f5 | cut -d. -f1)"
+      repouser="$(echo $ownrepo_container | cut -d/ -f4)"
+      repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+      if [ -z "${repotag}" ]; then
+        repotag=$(whip_inputbox "OK" "CONTAINER" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
+      fi
+      mkdir "${script_path}/container_tmp"
+      git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/container_tmp"
+      cp -rvf "${script_path}/container_tmp/*" "${script_path}/container"
+      rm -rf "${script_path}/container_tmp"
     fi
-  fi
-
-  mkdir "${script_path}/container"
-  git clone --branch ${gh_tag_container} https://github.com/shiot/container.git "${script_path}/container"
-
-  if [ -n "${ownrepo_container}" ]; then
-    reponame="$(echo ${ownrepo_container} | cut -d/ -f5 | cut -d. -f1)"
-    repouser="$(echo $ownrepo_container | cut -d/ -f4)"
-    repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    if [ -z "${repotag}" ]; then
-      repotag=$(whip_inputbox "OK" "CONTAINER" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
-    fi
-    mkdir "${script_path}/container_tmp"
-    git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/container_tmp"
-    cp -rvf "${script_path}/container_tmp/*" "${script_path}/container"
-    rm -rf "${script_path}/container_tmp"
   fi
 
   while [ 3 ]; do
@@ -128,27 +126,25 @@ function menuVMs {
   gh_tag_vm=$(curl --silent "https://api.github.com/repos/shiot/vm/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
   if ${gh_test}; then gh_tag_vm="master"; fi
 
+  mkdir "${script_path}/vm"
+  git clone --branch ${gh_tag_vm} https://github.com/shiot/vm.git "${script_path}/vm"
+
+  #If developer, ask for cloning own vm repository from github
   if ${ct_dev}; then
     ownrepo_vm=""
     if whip_yesno "JA" "NEIN" "VM" "Möchtest Du ein eigenes gitHub-Repository für virtuelle Maschinen (VMs) angeben?"; then
       ownrepo_vm=$(whip_inputbox "OK" "VM" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/vm.git")
+      reponame="$(echo ${ownrepo_vm} | cut -d/ -f5 | cut -d. -f1)"
+      repouser="$(echo $ownrepo_vm | cut -d/ -f4)"
+      repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+      if [ -z "${repotag}" ]; then
+        repotag=$(whip_inputbox "OK" "VM" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
+      fi
+      mkdir "${script_path}/vm_tmp"
+      git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/vm_tmp"
+      cp -rvf "${script_path}/vm_tmp/*" "${script_path}/vm"
+      rm -rf "${script_path}/vm_tmp"
     fi
-  fi
-
-  mkdir "${script_path}/vm"
-  git clone --branch ${gh_tag_vm} https://github.com/shiot/vm.git "${script_path}/vm"
-
-  if [ -n "${ownrepo_vm}" ]; then
-    reponame="$(echo ${ownrepo_vm} | cut -d/ -f5 | cut -d. -f1)"
-    repouser="$(echo $ownrepo_vm | cut -d/ -f4)"
-    repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    if [ -z "${repotag}" ]; then
-      repotag=$(whip_inputbox "OK" "VM" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
-    fi
-    mkdir "${script_path}/vm_tmp"
-    git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/vm_tmp"
-    cp -rvf "${script_path}/vm_tmp/*" "${script_path}/vm"
-    rm -rf "${script_path}/vm_tmp"
   fi
 
   while [ 4 ]; do
@@ -192,19 +188,6 @@ function menuVMs {
 }
 
 function menuMain {
-  if [ -n "${ownrepo_tools}" ]; then
-    reponame="$(echo ${ownrepo_tools} | cut -d/ -f5 | cut -d. -f1)"
-    repouser="$(echo ${ownrepo_tools} | cut -d/ -f4)"
-    repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    if [ -z "${repotag}" ]; then
-      repotag=$(whip_inputbox "OK" "TOOLS" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
-    fi
-    mkdir "${script_path}/tools_tmp"
-    git clone --branch ${repotag} https://github.com/${repouser}/${reponame}.git "${script_path}/tools_tmp"
-    cp -rvf "${script_path}/tools_tmp/*" "${script_path}/tools"
-    rm -rf "${script_path}/tools_tmp"
-  fi
-
   while [ 1 ]; do
     CHOICE=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Operative Systems" "Ich möchte ..." 20 80 10 \
       "1)" "... meinen HomeServer bearbeiten"   \
@@ -229,15 +212,27 @@ function menuMain {
         gh_tag_tools=$(curl --silent "https://api.github.com/repos/shiot/tools/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
         if ${gh_test}; then gh_tag_tools="master"; fi
 
+        mkdir "${script_path}/tools"
+        git clone --branch ${gh_tag_tools} https://github.com/shiot/tools.git "${script_path}/tools"
+
+        #If developer, ask for cloning own tools repository from github
         if ${ct_dev}; then
           ownrepo_tools=""
           if whip_yesno "JA" "NEIN" "TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Tools angeben?"; then
             ownrepo_tools=$(whip_inputbox "OK" "TOOLS" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/tools.git")
+            reponame="$(echo ${ownrepo_tools} | cut -d/ -f5 | cut -d. -f1)"
+            repouser="$(echo ${ownrepo_tools} | cut -d/ -f4)"
+            repotag=$(curl --silent "https://api.github.com/repos/${repouser}/${reponame}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+            if [ -z "${repotag}" ]; then
+              repotag=$(whip_inputbox "OK" "TOOLS" "Es konnte kein Latest-Release ermittelt werden, welches Release möchtest Du aus Deinem Repository nutzen?" "master")
+            fi
+            mkdir "${script_path}/tools_tmp"
+            git clone --branch "${repotag}" "https://github.com/${repouser}/${reponame}.git" "${script_path}/tools_tmp"
+            cp -rvf "${script_path}/tools_tmp/*" "${script_path}/tools"
+            rm -rf "${script_path}/tools_tmp"
           fi
         fi
 
-        mkdir "${script_path}/tools"
-        git clone --branch ${gh_tag_tools} https://github.com/shiot/tools.git "${script_path}/tools"
         bash "${script_path}/tools/start.sh"
       ;;
       "9)")
@@ -260,7 +255,7 @@ if [ -f "${config_path}/.config" ]; then
   if [ -f "${config_path}/${config_file}" ]; then
     source "${config_path}/${config_file}"
     if [[ ${version_mainconfig} != "${config_version}" ]]; then
-      if bash "${script_path}/scripts/create_mainconfig.sh"; then
+      if bash "${script_path}/scripts/pve_mainconfig.sh"; then
         echoLOG g "Die Konfigurationsdatei wurde aktualisiert"
       fi
     fi
@@ -269,7 +264,7 @@ if [ -f "${config_path}/.config" ]; then
     cleanup_and_exit
   fi
 else
-  if bash "${script_path}/scripts/create_mainconfig.sh"; then
+  if bash "${script_path}/scripts/pve_mainconfig.sh"; then
     touch "${config_path}/.config"
     echoLOG g "Proxmox HomeServer erfolgreich konfiguriert"
   else

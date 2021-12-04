@@ -117,7 +117,7 @@ function whip_alert() {
 }
 
 function whip_alert_yesno() {
-  #call whip_alert_yesno "btn1" "btn2" "title" "message"
+  #call whip_alert_yesno "btn1" "btn2" "title" "message"  >> btn1 = true  btn2 = false
   NEWT_COLORS='
       window=black,red
       border=white,red
@@ -132,22 +132,37 @@ function whip_alert_yesno() {
 
 # Functions shows Whiptail
 function whip_yesno() {
-  #call whip_yesno "btn1" "btn2" "title" "message"
+  #call whip_yesno "btn1" "btn2" "title" "message"  >> btn1 = true  btn2 = false
   whiptail --yesno --yes-button " $1 " --no-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "$4" 10 80
   yesno=$?
   if [ ${yesno} -eq 0 ]; then true; else false; fi
 }
 
 function whip_inputbox() {
-  #call whip_inputbox "btn1" "title" "message" "default value"
+  #call whip_inputbox "btn" "title" "message" "default value"
   input=$(whiptail --inputbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "\n$3" 10 80 "$4" 3>&1 1>&2 2>&3)
   echo "${input}"
 }
 
+function whip_inputbox_cancel() {
+  #call whip_inputbox_cancel "btn1" "btn2" "title" "message" "default value"
+  input=$(whiptail --inputbox --ok-button " $1 " --cancel-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "\n$4" 10 80 "$5" 3>&1 1>&2 2>&3)
+  if [$? -eq 1]; then echo "cancel"; fi
+  echo "${input}"
+}
+
 function whip_inputbox_password() {
-  #call whip_inputbox "btn1" "title" "message"
+  #call whip_inputbox "btn" "title" "message"
   input=$(whiptail --passwordbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "\n$3" 10 80 3>&1 1>&2 2>&3)
   echo "${input}"
+}
+
+function package_exists() {
+    if [ $(dpkg-query -s "${1}" | grep -cw "Status: install ok installed") -eq 1 ]; then
+        true
+    else
+        false
+    fi
 }
 
 function lxc_mountNAS() {
