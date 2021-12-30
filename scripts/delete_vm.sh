@@ -10,8 +10,8 @@ source "${script_path}/language/${main_language}.sh"   # Language Variables in t
 
 whip_title="LÖSCHE VM"
 
-# Check if Container existing in System
-if [ $(qm list | grep -c 1.*) -eq 0 ]; then
+# Check if virtual Mashine existing in System
+if [ $(qm list | tail -n +2 | wc -l) -eq 0 ]; then
   whip_alert "${whip_title}" "Es wurde keine virtuelle Maschine (VM) auf deinem HomeServer gefunden. Es gibt nichts was glöscht werden könnte."
   exit 1
 fi
@@ -25,7 +25,7 @@ fi
 
 # Start deletion
 if [[ ${mode} == "all" ]]; then
-  for vm in $(qm list | sed '1d' | awk '{print $1}'); do
+  for vm in $(qm list | tail -n +2 | awk '{print $1}'); do
     name=$(qm list | grep ${vm} | awk '{print $2}')
     echoLOG y "Beginne mit dem Löschvorgang von Gast >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
     if whip_alert_yesno "JA" "NEIN" "${whip_title}" "Bist Du sicher das Du die virtuelle Maschine (VM)\nID:   ${vm}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
@@ -33,16 +33,14 @@ if [[ ${mode} == "all" ]]; then
         echoLOG b "Das Gastsystem wird runtergefahren, um löschen zu können"
         qm shutdown ${vm} --forceStop 1 --timeout 10 > /dev/null 2>&1
       fi
-      qm destroy ${vm} --destroy-unreferenced-disks 1 ---purge 1 > /dev/null 2>&1
-      ##################################################################
-      #############    Delete firewall rules of the VM     #############
-      ##################################################################
-      sleep 5
-      if [ $(qm list | grep -cw ${vm}) -eq 0 ]; then
+      if qm destroy ${vm} --destroy-unreferenced-disks 1 ---purge 1 > /dev/null 2>&1; then
         echoLOG g "Die virtuelle Maschine (VM) wurde gelöscht >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
       else
         whip_alert "${whip_title}" "Die virtuelle Maschine (VM)\nID:   ${vm}\nName: ${name}\nkonnte nicht gelöscht werden"
       fi
+      ########################## TO DO #################################
+      ############# Delete firewall rules of the container #############
+      ##################################################################
     else
       echoLOG b "Der Löschvorgang des Gastsystem wurde abgebrochen >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
     fi
@@ -50,7 +48,7 @@ if [[ ${mode} == "all" ]]; then
 else
   if [ -f "/tmp/list.sh" ]; then rm "/tmp/list.sh"; fi
   echo -e '#!/bin/bash\n\nlist=( \\' > /tmp/list.sh
-  for vm in $(qm list | sed '1d' | awk '{print $1}'); do
+  for vm in $(qm list | tail -n +2 | awk '{print $1}'); do
     echo -e "\"${vm}\" \""VM - $(qm list | grep ${vm} | awk '{print $2}')"\" off \\" >> /tmp/list.sh
   done
   echo -e ')' >> /tmp/list.sh
@@ -66,16 +64,14 @@ else
         echoLOG b "Das Gastsystem wird runtergefahren, um es löschen zu können"
         qm shutdown ${vm} --forceStop 1 --timeout 10 > /dev/null 2>&1
       fi
-      qm destroy ${vm} --destroy-unreferenced-disks 1 ---purge 1 > /dev/null 2>&1
-      ##################################################################
-      ############# Delete firewall rules of the container #############
-      ##################################################################
-      sleep 5
-      if [ $(qm list | grep -cw ${vm}) -eq 0 ]; then
+      if qm destroy ${vm} --destroy-unreferenced-disks 1 ---purge 1 > /dev/null 2>&1; then
         echoLOG g "Die virtuelle Maschine (VM) wurde gelöscht >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
       else
         whip_alert "${whip_title}" "Die virtuelle Maschine (VM)\nID:   ${vm}\nName: ${name}\nkonnte nicht gelöscht werden"
       fi
+      ########################## TO DO #################################
+      ############# Delete firewall rules of the container #############
+      ##################################################################
     else
       echoLOG b "Der Löschvorgang des Gastsystem wurde abgebrochen >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
     fi

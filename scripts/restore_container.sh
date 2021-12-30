@@ -10,7 +10,7 @@ source "${script_path}/language/${main_language}.sh"   # Language Variables in t
 
 whip_title="CONTAINER WIEDERHERSTELLEN"
 
-# Check if there are already manual backups
+# Check if there are manual backups
 if ! ls /mnt/pve/backups/dump/*_manual.tar.zst 1> /dev/null 2>&1; then
   whip_alert "${whip_title}" "Es wurden keine manuellen Container Backups gefunden. Es gibt nichts von dem ein Container wiederhergestellt werden könnte."
   exit 1
@@ -20,7 +20,7 @@ for lxc in $(ls -l /mnt/pve/backups/dump/*_manual.tar.zst | awk '{print $9}' | c
   id=100
   name=$(ls -l /mnt/pve/backups/dump/*${lxc}*_manual.tar.zst | awk '{print $9}' | cut -d- -f4 | cut -d_ -f1)
   new=true
-  if [ $(pct list | sed '1d' | grep -c "") -gt 0 ]; then
+  if [ $(pct list | tail -n +2 | wc -l) -gt 0 ]; then
     new=falsee
     name="${name}-recover"
     #search the next free id

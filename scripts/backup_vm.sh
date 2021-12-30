@@ -11,7 +11,7 @@ source "${script_path}/language/${main_language}.sh"   # Language Variables in t
 whip_title="VM BACKUP"
 
 # Check if VMs existing in System
-if  [ $(qm list | grep -c 2.*) -eq 0 ]; then
+if  [ $(qm list | tail -n +2 | wc -l) -eq 0 ]; then
   whip_alert "${whip_title}" "Es wurden keine virtuelle Maschinen (VM) auf deinem HomeServer gefunden. Es gibt nichts von dem ein Backup erstellt werden könnte."
   exit 1
 fi
@@ -34,7 +34,7 @@ fi
 
 # Start Backup process
 if [[ ${mode} == "all" ]]; then
-  for vm in $(qm list | sed '1d' | awk '{print $1}'); do
+  for vm in $(qm list | tail -n +2 | awk '{print $1}'); do
     echoLOG y "Backupprozess von Gast gestartet >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}$(qm list | grep ${vm} | awk '{print $2}')${NOCOLOR}"
     if [ $(qm status ${vm} | grep -c "running") -eq 1 ]; then
       echoLOG b "Das Gastsystem wird runtergefahren, um eine hohe Sicherungsqualität sicher zu stellen"
@@ -54,15 +54,15 @@ if [[ ${mode} == "all" ]]; then
 else
   if [ -f "/tmp/list.sh" ]; then rm "/tmp/list.sh"; fi
   echo -e '#!/bin/bash\n\nlist=( \\' > /tmp/list.sh
-  for vm in $(qm list | sed '1d' | awk '{print $1}'); do
-    echo -e "\"${vm}\" \""VM - $(qm list | grep ${vm} | awk '{print $3}')"\" off \\" >> /tmp/list.sh
+  for vm in $(qm list | tail -n +2 | awk '{print $1}'); do
+    echo -e "\"${vm}\" \"$(pct list | grep ${vm} | awk '{print $3}')\" off \\" >> /tmp/list.sh
   done
   echo -e ')' >> /tmp/list.sh
   source /tmp/list.sh
 
   choice=$(whiptail --checklist --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title} " "Welche Gastsysteme möchtest du sichern?" 20 80 10 "${list[@]}" 3>&1 1>&2 2>&3 | sed 's#"##g')
 
-  for vm in $choice; do
+  for vm in ${choice}; do
     echoLOG y "Backupprozess von Gast gestartet >> ID: ${LIGHTPURPLE}${vm}${NOCOLOR}  Name: ${LIGHTPURPLE}$(qm list | grep ${vm} | awk '{print $2}')${NOCOLOR}"
     if [ $(qm status ${vm} | grep -c "running") -eq 1 ]; then
       echoLOG b "Das Gastsystem wird runtergefahren, um eine hohe Sicherungsqualität sicher zu stellen"

@@ -10,7 +10,7 @@ source "${script_path}/language/${main_language}.sh"   # Language Variables in t
 
 whip_title="VMs WIEDERHERSTELLEN"
 
-# Check if there are already manual backups
+# Check if there are manual backups
 if ! ls /mnt/pve/backups/dump/*_manual.vma.zst 1> /dev/null 2>&1; then
   whip_alert "${whip_title}" "Es wurden keine manuellen Backups von virtuellen Maschinen (VMs) gefunden. Es gibt nichts von dem eine virtuelle Maschine (VM) wiederhergestellt werden könnte."
   exit 1
@@ -20,7 +20,7 @@ for vm in $(ls -l /mnt/pve/backups/dump/*_manual.vma.zst | awk '{print $9}' | cu
   id=200
   name=$(ls -l /mnt/pve/backups/dump/*${vm}*_manual.vma.zst | awk '{print $9}' | cut -d- -f4 | cut -d_ -f1)
   new=true
-  if [ $(qm list | sed '1d' | grep -c "") -gt 0 ]; then
+  if [ $(qm list | tail -n +2 | wc -l) -gt 0 ]; then
     new=falsee
     name="${name}-recover"
     #search the next free id

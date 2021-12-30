@@ -3,6 +3,7 @@ version_mainconfig="1.0.0"
 
 # Proxmox Hostsystem
 pve_osname=$(cat /etc/os-release | grep VERSION_CODENAME | cut -d= -f2)
+needed_packages="parted smartmontools libsasl2-modules mailutils git lxc-pve"
 
 # config path and files stored in it
 config_path="/opt/smarthome-iot.net"
@@ -30,6 +31,3 @@ LIGHTBLUE='\033[1;34m'
 LIGHTPURPLE='\033[1;35m'
 LIGHTCYAN='\033[1;36m'
 WHITE='\033[1;37m'
-
-# configuration
-needed_packages="parted smartmontools libsasl2-modules mailutils git lxc-pve"

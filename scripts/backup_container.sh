@@ -11,7 +11,7 @@ source "${script_path}/language/${main_language}.sh"   # Language Variables in t
 whip_title="CONTAINER BACKUP"
 
 # Check if Container existing in System
-if [ $(pct list | grep -c 1.*) -eq 0 ]; then
+if [ $(pct list | tail -n +2 | wc -l) -eq 0 ]; then
   whip_alert "${whip_title}" "Es wurden keine Container auf deinem HomeServer gefunden. Es gibt nichts von dem ein Backup erstellt werden könnte."
   exit 1
 fi
@@ -34,7 +34,7 @@ fi
 
 # Start Backup process
 if [[ ${mode} == "all" ]]; then
-  for lxc in $(pct list | sed '1d' | awk '{print $1}'); do
+  for lxc in $(pct list | tail -n +2 | awk '{print $1}'); do
     echoLOG y "Backupprozess von Gast gestartet >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}$(pct list | grep ${lxc} | awk '{print $3}')${NOCOLOR}"
     if [ $(pct status ${lxc} | grep -c "running") -eq 1 ]; then
       echoLOG b "Das Gastsystem wird runtergefahren, um eine hohe Sicherungsqualität sicher zu stellen"
@@ -54,15 +54,15 @@ if [[ ${mode} == "all" ]]; then
 else
   if [ -f "/tmp/list.sh" ]; then rm "/tmp/list.sh"; fi
   echo -e '#!/bin/bash\n\nlist=( \\' > /tmp/list.sh
-  for lxc in $(pct list | sed '1d' | awk '{print $1}'); do
-    echo -e "\"${lxc}\" \""CT - $(pct list | grep ${lxc} | awk '{print $3}')"\" off \\" >> /tmp/list.sh
+  for lxc in $(pct list | tail -n +2 | awk '{print $1}'); do
+    echo -e "\"${lxc}\" \"$(pct list | grep ${lxc} | awk '{print $3}')\" off \\" >> /tmp/list.sh
   done
   echo -e ')' >> /tmp/list.sh
   source /tmp/list.sh
 
   choice=$(whiptail --checklist --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title} " "Welche Gastsysteme möchtest du sichern?" 20 80 10 "${list[@]}" 3>&1 1>&2 2>&3 | sed 's#"##g')
 
-  for lxc in $choice; do
+  for lxc in ${choice}; do
     echoLOG y "Backupprozess von Gast gestartet >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}$(pct list | grep ${lxc} | awk '{print $3}')${NOCOLOR}"
     if [ $(pct status ${lxc} | grep -c "running") -eq 1 ]; then
       echoLOG b "Das Gastsystem wird runtergefahren, um eine hohe Sicherungsqualität sicher zu stellen"

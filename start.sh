@@ -4,9 +4,6 @@
 # Proxmox Host system and generate some configuration files, for later use
 
 export script_path=$(cd `dirname $0` && pwd)
-export main_language=$1
-export gh_test=$2
-export ct_dev=$3
 
 #Load needed Files
 source ${script_path}/sources/functions.sh            # Functions needed in this Script
@@ -51,13 +48,13 @@ function menuHost {
 
 function menuContainer {
   gh_tag_container=$(curl --silent "https://api.github.com/repos/shiot/container/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  if ${gh_test}; then gh_tag_container="master"; fi
+  if ${beta_repo}; then gh_tag_container="master"; fi
 
   mkdir "${script_path}/container"
   git clone --branch ${gh_tag_container} https://github.com/shiot/container.git "${script_path}/container"
 
   #If developer, ask for cloning own lxc repository from github
-  if ${ct_dev}; then
+  if ${mode_develop}; then
     ownrepo_container=""
     if whip_yesno "JA" "NEIN" "CONTAINER" "Möchtest Du ein eigenes gitHub-Repository für Conatiner angeben?"; then
       ownrepo_container=$(whip_inputbox "OK" "CONTAINER" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/container.git")
@@ -124,13 +121,13 @@ function menuContainer {
 
 function menuVMs {
   gh_tag_vm=$(curl --silent "https://api.github.com/repos/shiot/vm/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  if ${gh_test}; then gh_tag_vm="master"; fi
+  if ${beta_repo}; then gh_tag_vm="master"; fi
 
   mkdir "${script_path}/vm"
   git clone --branch ${gh_tag_vm} https://github.com/shiot/vm.git "${script_path}/vm"
 
   #If developer, ask for cloning own vm repository from github
-  if ${ct_dev}; then
+  if ${mode_develop}; then
     ownrepo_vm=""
     if whip_yesno "JA" "NEIN" "VM" "Möchtest Du ein eigenes gitHub-Repository für virtuelle Maschinen (VMs) angeben?"; then
       ownrepo_vm=$(whip_inputbox "OK" "VM" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/vm.git")
@@ -210,13 +207,13 @@ function menuMain {
       ;;
       "4)")
         gh_tag_tools=$(curl --silent "https://api.github.com/repos/shiot/tools/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        if ${gh_test}; then gh_tag_tools="master"; fi
+        if ${beta_repo}; then gh_tag_tools="master"; fi
 
         mkdir "${script_path}/tools"
         git clone --branch ${gh_tag_tools} https://github.com/shiot/tools.git "${script_path}/tools"
 
         #If developer, ask for cloning own tools repository from github
-        if ${ct_dev}; then
+        if ${mode_develop}; then
           ownrepo_tools=""
           if whip_yesno "JA" "NEIN" "TOOLS" "Möchtest Du ein eigenes gitHub-Repository für Tools angeben?"; then
             ownrepo_tools=$(whip_inputbox "OK" "TOOLS" "Wie lautet die GIT-Adresse zu Deinem Repository?" "https://github.com/shiot/tools.git")

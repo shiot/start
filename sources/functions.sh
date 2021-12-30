@@ -34,18 +34,18 @@ function generateAPIKey() {
 function updateHost() {
   {
     echo -e "XXX\n12\nSystemupdate wird ausgeführt ...\nXXX"
-    apt-get update
+    if ! apt-get install 2>&1 >/dev/null; then false; fi
     echo -e "XXX\n25\nSystemupdate wird ausgeführt ...\nXXX"
-    apt-get upgrade -y
+    if ! apt-get upgrade -y 2>&1 >/dev/null; then false; fi
     echo -e "XXX\n47\nSystemupdate wird ausgeführt ...\nXXX"
-    apt-get dist-upgrade -y
+    if ! apt-get dist-upgrade -y 2>&1 >/dev/null; then false; fi
     echo -e "XXX\n64\nSystemupdate wird ausgeführt ...\nXXX"
-    apt-get autoremove -y
+    if ! apt-get autoremove -y 2>&1 >/dev/null; then false; fi
     echo -e "XXX\n79\nSystemupdate wird ausgeführt ...\nXXX"
-    pveam update 2>&1
+    if ! pveam update 2>&1 >/dev/null; then false; fi
     echo -e "XXX\n98\nSystemupdate wird ausgeführt ...\nXXX"
   } | whiptail --gauge --backtitle "© 2021 - SmartHome-IoT.net" --title " SYSTEMVORBEREITUNG " "Dein HomeServer wird auf Systemupdates geprüft ..." 10 80 0
-  return 0
+  return true
 }
 
 function bak_file() {
@@ -112,8 +112,15 @@ function whip_alert() {
       textbox=white,red
       button=black,yellow
     ' \
-    whiptail --msgbox --ok-button " OK " --backtitle "© 2021 - SmartHome-IoT.net" --title " $1 " "$2" 10 80
+    whiptail --msgbox --ok-button " OK " --backtitle "© 2021 - SmartHome-IoT.net" --title " ${1} " "${2}" 0 80
     echoLOG r "${message}"
+}
+
+# give an whiptail message box
+function whip_message() {
+  #call whip_message "title" "message"
+  whiptail --msgbox --ok-button " OK " --backtitle "© 2021 - SmartHome-IoT.net" --title " ${1} " "${2}" 0 80
+  echoLOG b "${message}"
 }
 
 function whip_alert_yesno() {
@@ -125,7 +132,7 @@ function whip_alert_yesno() {
       button=black,yellow
     ' \
     echoLOG r "${4}"
-    whiptail --yesno --yes-button " $1 " --no-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "$4" 10 80
+    whiptail --yesno --yes-button " ${1} " --no-button " ${2} " --backtitle "© 2021 - SmartHome-IoT.net" --title " ${3} " "${4}" 0 80
     yesno=$?
     if [ ${yesno} -eq 0 ]; then true; else false; fi
 }
@@ -133,28 +140,84 @@ function whip_alert_yesno() {
 # Functions shows Whiptail
 function whip_yesno() {
   #call whip_yesno "btn1" "btn2" "title" "message"  >> btn1 = true  btn2 = false
-  whiptail --yesno --yes-button " $1 " --no-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "$4" 10 80
+  whiptail --yesno --yes-button " ${1} " --no-button " ${2} " --backtitle "© 2021 - SmartHome-IoT.net" --title " ${3} " "${4}" 0 80
   yesno=$?
   if [ ${yesno} -eq 0 ]; then true; else false; fi
 }
 
 function whip_inputbox() {
   #call whip_inputbox "btn" "title" "message" "default value"
-  input=$(whiptail --inputbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "\n$3" 10 80 "$4" 3>&1 1>&2 2>&3)
-  echo "${input}"
+  input=$(whiptail --inputbox --ok-button " ${1} " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${2} " "\n${3}" 0 80 "${4}" 3>&1 1>&2 2>&3)
+  if [[ $input == "" ]]; then
+    whip_inputbox "$1" "$2" "$3" "$4\n\n!!! Es muss eine Eingabe erfolgen !!!" ""
+  else
+    echo "${input}"
+  fi
 }
 
 function whip_inputbox_cancel() {
   #call whip_inputbox_cancel "btn1" "btn2" "title" "message" "default value"
-  input=$(whiptail --inputbox --ok-button " $1 " --cancel-button " $2 " --backtitle "© 2021 - SmartHome-IoT.net" --title " $3 " "\n$4" 10 80 "$5" 3>&1 1>&2 2>&3)
-  if [$? -eq 1]; then echo "cancel"; fi
-  echo "${input}"
+  input=$(whiptail --inputbox --ok-button " ${1} " --cancel-button " ${2} " --backtitle "© 2021 - SmartHome-IoT.net" --title " ${3} " "\n${4}" 0 80 "${5}" 3>&1 1>&2 2>&3)
+  if [ $? -eq 1 ]; then
+    echo cancel
+  else
+    if [[ $input == "" ]]; then
+      whip_inputbox_cancel "$1" "$2" "$3" "$4\n\n!!! Es muss eine Eingabe erfolgen !!!" ""
+    else
+      echo "${input}"
+    fi
+  fi
 }
 
 function whip_inputbox_password() {
   #call whip_inputbox "btn" "title" "message"
-  input=$(whiptail --passwordbox --ok-button " $1 " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " $2 " "\n$3" 10 80 3>&1 1>&2 2>&3)
-  echo "${input}"
+  input=$(whiptail --passwordbox --ok-button " ${1} " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${2} " "\n${3}" 10 80 3>&1 1>&2 2>&3)
+  if [[ $input == "" ]]; then
+    whip_inputbox "$1" "$2" "$3" "$4\n\n!!! Es muss eine Eingabe erfolgen !!!" ""
+  else
+    echo "${input}"
+  fi
+}
+
+function whip_filebrowser() {
+  #call whip_filebrowser "startpath"
+  #returns $filename and $filepath
+  if [ -z $1 ] ; then
+    dir_list=$(ls -lhp | grep "^d" | awk '{print $9 "  " $7 $6 "-" $8}' && ls -lhp | grep -v "^d" | grep -v "^l" | grep -v "^total" | awk '{print $9 "  " $7 $6 "-" $8}')
+  else
+    cd "$1"
+    dir_list=$(ls -lhp | grep "^d" | awk '{print $9 "  " $7 $6 "-" $8}' && ls -lhp | grep -v "^d" | grep -v "^l" | grep -v "^total" | awk '{print $9 "  " $7 $6 "-" $8}')
+  fi
+
+  curdir=$(pwd)
+  if [ "$curdir" == "/" ] ; then  # Check if current dir is root folder
+    selection=$(whiptail --menu --ok-button " Select " --cancel-button " Cancel " --backtitle "© 2021 - SmartHome-IoT.net" --title " Dateiauswahl " "Aktueller Pfad\n$curdir" 0 80 0 $dir_list 3>&1 1>&2 2>&3)
+  else   # Not root dir so show ../ selection in Menu
+    selection=$(whiptail --menu --ok-button " Select " --cancel-button " Cancel " --backtitle "© 2021 - SmartHome-IoT.net" --title " Dateiauswahl " "Aktueller Pfad\n$curdir" 0 80 0 ../ " " $dir_list 3>&1 1>&2 2>&3)
+  fi
+
+  RET=$?
+  if [ $RET -eq 1 ]; then return 1; fi  # Check if User selected cancel
+  
+  if [[ -d "$selection" ]]; then  # Check if Directory selected
+    whip_filebrowser "$selection"
+  elif [[ -f "$selection" ]]; then  # Check if File selected
+    if file --mime-type "$selection" | grep -q text; then  # Check if selected File can read as Text-File
+      if (whip_yesno "Bestätigen" "Wiederholen" "Auswahl bestätigen" "Pfad     : $curdir\nDateiname: $selection"); then
+        filename="$selection"
+        filepath="$curdir"    # Return full filepath and filename as selection variables
+      else
+        whip_filebrowser "$curdir"
+      fi
+    else   # Not correct fileselection so inform User and restart fileselection
+      whip_alert "ERROR" "Du musst eine Datei wählen, dieals Text-Datei gelesenwerden kann (z.B. *.sh oder *.txt)\n$selection"
+      whip_filebrowser "$curdir"
+    fi
+  else
+    # Could not detect a file or folder so Try Again
+    whip_alert "ERROR" "Fehler beim Wechseln zum Pfad\n$selection"
+    whip_filebrowser "$curdir"
+  fi
 }
 
 function package_exists() {
@@ -172,7 +235,7 @@ function lxc_mountNAS() {
 
 # Function configures SQL secure in LXC Containers
 function lxc_SQLSecure() {
-  ctID=$1
+  ctID=${1}
   SECURE_MYSQL=$(expect -c "
   set timeout 3
   spawn mysql_secure_installation

@@ -11,7 +11,7 @@ source "${script_path}/language/${main_language}.sh"   # Language Variables in t
 whip_title="LÖSCHE CONTAINER"
 
 # Check if Container existing in System
-if [ $(pct list | grep -c 1.*) -eq 0 ]; then
+if [ $(pct list | tail -n +2 | wc -l) -eq 0 ]; then
   whip_alert "${whip_title}" "Es wurden keine Container auf deinem HomeServer gefunden. Es gibt nichts was glöscht werden könnte."
   exit 1
 fi
@@ -25,7 +25,7 @@ fi
 
 # Start deletion
 if [[ ${mode} == "all" ]]; then
-  for lxc in $(pct list | sed '1d' | awk '{print $1}'); do
+  for lxc in $(pct list | tail -n +2 | awk '{print $1}'); do
     name=$(pct list | grep ${lxc} | awk '{print $3}')
     echoLOG y "Beginne mit dem Löschvorgang von Gast >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
     if whip_alert_yesno "JA" "NEIN" "${whip_title}" "Bist Du sicher das Du den Container\nID:   ${lxc}\nName: ${name}\nlöschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden."; then
@@ -33,16 +33,14 @@ if [[ ${mode} == "all" ]]; then
         echoLOG b "Das Gastsystem wird runtergefahren, um löschen zu können"
         pct shutdown ${lxc} --forceStop 1 --timeout 10 > /dev/null 2>&1
       fi
-      pct destroy ${lxc} --destroy-unreferenced-disks 1 --force 1 --purge 1 > /dev/null 2>&1
-      ##################################################################
-      ############# Delete firewall rules of the container #############
-      ##################################################################
-      sleep 5
-      if [ $(pct list | grep -cw ${lxc}) -eq 0 ]; then
+      if pct destroy ${lxc} --destroy-unreferenced-disks 1 --force 1 --purge 1 > /dev/null 2>&1; then
         echoLOG g "Der Container wurde gelöscht >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
       else
-        whip_alert "${whip_title}" "Der Container\nID:   ${lxc}\nName: ${name}\nkonnte nicht gelöscht werden"
+        whip_alert "${whip_title}" "Der Container\nID:   ${lxc}\nName: ${name}\nkonnte nicht gelöscht werden."
       fi
+      ########################## TO DO #################################
+      ############# Delete firewall rules of the container #############
+      ##################################################################
     else
       echoLOG b "Der Löschvorgang des Gastsystem wurde abgebrochen >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
     fi
@@ -50,8 +48,8 @@ if [[ ${mode} == "all" ]]; then
 else
   if [ -f "/tmp/list.sh" ]; then rm "/tmp/list.sh"; fi
   echo -e '#!/bin/bash\n\nlist=( \\' > /tmp/list.sh
-  for lxc in $(pct list | sed '1d' | awk '{print $1}'); do
-    echo -e "\"${lxc}\" \""CT - $(pct list | grep ${lxc} | awk '{print $3}')"\" off \\" >> /tmp/list.sh
+  for lxc in $(pct list | tail -n +2 | awk '{print $1}'); do
+    echo -e "\"${lxc}\" \"$(pct list | grep ${lxc} | awk '{print $3}')\" off \\" >> /tmp/list.sh
   done
   echo -e ')' >> /tmp/list.sh
   source /tmp/list.sh
@@ -66,16 +64,14 @@ else
         echoLOG b "Das Gastsystem wird runtergefahren, um es löschen zu können"
         pct shutdown ${lxc} --forceStop 1 --timeout 10 > /dev/null 2>&1
       fi
-      pct destroy ${lxc} --destroy-unreferenced-disks 1 --force 1 --purge 1 > /dev/null 2>&1
-      ##################################################################
-      ############# Delete firewall rules of the container #############
-      ##################################################################
-      sleep 5
-      if [ $(pct list | grep -cw ${lxc}) -eq 0 ]; then
+      if pct destroy ${lxc} --destroy-unreferenced-disks 1 --force 1 --purge 1 > /dev/null 2>&1; then
         echoLOG g "Der Container wurde gelöscht >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
       else
-        whip_alert "${whip_title}" "Der Container\nID:   ${lxc}\nName: ${name}\nkonnte nicht gelöscht werden"
+        whip_alert "${whip_title}" "Der Container\nID:   ${lxc}\nName: ${name}\nkonnte nicht gelöscht werden."
       fi
+      ########################## TO DO #################################
+      ############# Delete firewall rules of the container #############
+      ##################################################################
     else
       echoLOG b "Der Löschvorgang des Gastsystem wurde abgebrochen >> ID: ${LIGHTPURPLE}${lxc}${NOCOLOR}  Name: ${LIGHTPURPLE}${name}${NOCOLOR}"
     fi
