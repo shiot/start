@@ -220,6 +220,16 @@ function whip_filebrowser() {
   fi
 }
 
+function check_ip() {
+  if [ -n $1 ]; then ip="$1"; else ip=""; fi
+  while ! pingIP ${ip}; do
+    ip=$(whip_inputbox_cancel "OK" "Abbrechen" "${whip_title_fr}" "Wie lautet die IP-Adresse des Netzwerkgerätes, auf dem sich die Freigabe befindet?" "$(echo ${ip})")
+    RET=$?
+    if [ $RET -eq 1 ]; then return 1; fi  # Check if User selected cancel
+  done
+  echo "${ip}"
+}
+
 function package_exists() {
     if [ $(dpkg-query -s "${1}" | grep -cw "Status: install ok installed") -eq 1 ]; then
         true

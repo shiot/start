@@ -8,64 +8,42 @@ source "${script_path}/sources/functions.sh"  # Functions needed in this Script
 source "${script_path}/sources/variables.sh"  # Variables needed in this Script
 source "${script_path}/language/${main_language}.sh"   # Language Variables in this Script
 
-# loads mainconfig file if exists
-update=false
-if [ -f "${config_path}/${config_file}" ]; then
-  source "${config_path}/${config_file}"
-  update=true
-fi
-
 whip_title="ERSTELLE/AKTUALISIERE KONFIGURATIONSDATEI"
 
-function fristRun() {
+if [ ! -f "${config_path}/.config" ]; then
   whip_title_fr="ERSTSTART"
-  # If no Config File is found, ask User to recover or to make a new Configuration
   if whip_alert_yesno "RECOVER" "KONFIG" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
     if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
     if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS, PC oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
-      cfg_IP=
-      while ! pingIP $cfg_IP; do
-        cfg_IP=$(whip_inputbox_cancel "OK" "Abbrechen" "${whip_title_fr}" "Wie lautet die IP-Adresse des Netzwerkgerätes, auf dem sich die Freigabe befindet?" "$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3).")
-        if [[ ${cfg_IP} == "cancel" ]]; then break; fi
-      done
-      if [[ ${cfg_IP} == "cancel" ]]; then
+      if ! check_ip; then
         if whip_alert_yesno "Beenden" "Erstellen" "${whip_title_fr}" "Die wiederherstellung der Konfigurationsdatei von deinem Netzwerkgerät wurde auf Deinen Wunsch abgebrochen. Möchtest Du dieses Script beenden, oder eine neue Konfigurationsdatei erstellen?"
-          false
-        else
-          true
+          exit 1
         fi
+        mountUser=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Benutzername des Benutzers der Leserechte auf dieser Freigabe hat?" "netrobot")
+        mountPass=$(whip_inputbox_password "OK" "${whip_title_fr}" "Wie lautet das Passwort von diesem Benutzer?")
+        mount -t cifs -o user="${mountUser}",password="${mountPass}",rw,file_mode=0777,dir_mode=0777 "//${ip}" "/mnt/cfg_temp" > /dev/null 2>&1
+        mnt=true
       else
-        cfg_dir=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Ordnerpfad, in dem die Datei zu finden ist (ohne \\ oder / am Anfang oder Ende)?" "Path/to/File")
-        cfg_filename=$(whip_inputbox "OK" "${whip_title_fr}" "Wie heißt die Datei, die die Konfigurationsvariablen enthält?" "SHIoT_configuration.txt")
-        cfg_mountUser=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Benutzername des Benutzers der Leserechte auf dieser Freigabe hat?" "netrobot")
-        cfg_mountPass=$(whip_inputbox_password "OK" "${whip_title_fr}" "Wie lautet das Passwort von diesem Benutzer?")
-        mount -t cifs -o user="$cfg_mountUser",password="$cfg_mountPass",rw,file_mode=0777,dir_mode=0777 //$cfg_IP/$cfg_dir /mnt/cfg_temp > /dev/null 2>&1
-        cp "/mnt/cfg_temp/$cfg_filename" "${config_path}/${config_file}" > /dev/null 2>&1
-        umount "/mnt/cfg_temp" > /dev/null 2>&1
-      fi
-    else # ask for local or external file
-      if whip_yesno "DATENTRÄGER" "SERVER" "${whip_title_fr}" "Hast Du die Datei schon auf deinen HomeServer kopiert, oder befindet sie sich auf einem externen Datenträger?"; then # Mount USB Media and copy File
-        cfg_disk=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Pfad zu deinem USB-Gerät? (siehe WebGUI -> Server -> Disks)" "/dev/sdc")
-        cfg_dir=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Ordnerpfad, in dem die Datei zu finden ist (ohne \\ oder / am Anfang oder Ende)?" "Path/to/File")
-        cfg_filename=$(whip_inputbox "OK" "${whip_title_fr}" "Wie heißt die Datei, die die Konfigurationsvariablen enthält?" "SHIoT_configuration.txt")
-        mount $cfg_disk "/mnt/cfg_temp"
-        cp "/mnt/cfg_temp/$cfg_dir/$cfg_filename" "${config_path}/${config_file}" > /dev/null 2>&1
-        umount $cfg_disk
-        echoLOG g "${txt_0019}: $cfg_disk/$cfg_dir"
-      elif [ $yesno -eq 1 ]; then # copy File
-        cfg_path=$(whip_inputbox "OK" "${whip_title_fr}" "${txt_0022}")
-        cfg_filename=$(whip_inputbox "OK" "${whip_title_fr}" "${txt_0016}")
-        if [[ "/${cfg_path}/${cfg_filename}" != "${config_path}/${config_file}" ]]
-          cp "/${cfg_path}/${cfg_filename}" "${config_path}/${config_file}" > /dev/null 2>&1
-        fi
+        if whip_yesno "DATENTRÄGER" "SERVER" "${whip_title_fr}" "Hast Du die Datei schon auf deinen HomeServer kopiert, oder befindet sie sich auf einem externen Datenträger?"; then # Mount USB Media and copy File
+        ext_disk=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Pfad zu deinem USB-Gerät? (siehe WebGUI -> Server -> Disks)" "/dev/sdc")
+        mount $ext_disk "/mnt/cfg_temp"
+        mnt=true
       fi
     fi
-    echoLOG g "Die Konfigurationsdatei wurde erfolgreich kopiert"
-    rm "/mnt/cfg_temp/" > /dev/null 2>&1
-    true
+    if ${mnt}; then 
+      whip_filebrowser "/mnt/cfg_temp/"
+    else
+      whip_filebrowser "/root/"
+    fi
+    source "${filepath}/${filename}"
   fi
-  false
-}
+fi
+
+# loads mainconfig file if exists
+if [ -f "${config_path}/${config_file}" ]; then source "${config_path}/${config_file}"; fi
+
+# checks loaded config Version
+if [[ ${version_mainconfig} != "${config_version}" ]]; then update=true; else update=false; fi
 
 function vlan() {
 # Set Networkconfiguration
@@ -162,8 +140,8 @@ function vlan() {
 function netrobot() {
 # config Netrobot
   if $update; then
-    robot_name=$(whip_inputbox "OK" "${whip_title}" "Wie lautet der Benutzername, den Du deinem Netzwerkroboter zugewiesen hast?" "${robot_name}")
-    robot_pw=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches Du deinem Netzwerkroboter zugewiesen hast?" "${robot_pw}")
+    robot_name=$(whip_inputbox "OK" "${whip_title}" "Wie lautet der Benutzername, den Du deinem Netzwerkroboter zugewiesen hast?" "$(echo ${robot_name})")
+    robot_pw=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches Du deinem Netzwerkroboter zugewiesen hast?" "$(echo ${robot_pw})")
   else
     robot_name=$(whip_inputbox "OK" "${whip_title}" "Wie lautet der Benutzername, den Du deinem Netzwerkroboter zugewiesen hast?" "netrobot")
     robot_pw=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches Du deinem Netzwerkroboter zugewiesen hast?\nWenn Du hier kein Passwort eingibst, wird automatisch ein sicheres 26-Zeichen langes Passwort erstellt.")
@@ -178,61 +156,40 @@ function nas() {
 # Set NAS configuration
   if $nas_exist; then
     if $update; then
-      menu_nas=("1" "... Synology" \
-                "2" "... QNAP"\
-                "3" "... anderer")
-      for N in $(seq 1 5); do
-        nas_ip=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die IP-Adresse deiner NAS?" "${nas_ip}")
-        if pingIP $nas_ip; then
-          nas_manufactur=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title} " "\nMein NAS Hersteller heisst..." 20 80 10 "${menu_nas[@]}" 3>&1 1>&2 2>&3)
-          if [ $nas_manufactur -eq 1 ]; then
-            nas_synology=true
-            nas_qnap=false
-          elif [ $nas_manufactur -eq 2 ]; then
-            nas_synology=false
-            nas_qnap=true
-          else
-            nas_synology=false
-            nas_qnap=false
-          fi
-          nas_exist=ture
-          break
-        fi
-        if [ $N -eq 5 ]; then
-          whip_alert "${whip_title}" "Es konnte keine Verbindung zu deiner NAS hergestellt werden."
-          if whip_yesno "JA" "NEIN" "${whip_title}" "Möchtest du erneut versuchen Deine NAS einzubinden?"; then nas; fi
-        fi
+      nas_ip=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die IP-Adresse deiner NAS?" "${nas_ip}")
+      if check_ip "${nas_ip}"; then
+        nas_exist=true
+        nas_ip=${ip}
+      else
         nas_exist=false
-      done
+        nas_ip=
+      fi
     fi
   else
-    if whip_yesno "JA" "NEIN" "${whip_title}" "Hast Du eine NAS in deinem Netzwerk?"; then
-      menu_nas=("1" "... Synology" \
-                "2" "... QNAP"\
-                "3" "... anderer")
-      for N in $(seq 1 5); do
-        nas_ip=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die IP-Adresse deiner NAS?" "$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3)")
-        if pingIP ${nas_ip}; then
-          nas_manufactur=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title} " "\nMein NAS Hersteller heisst..." 20 80 10 "${menu_nas[@]}" 3>&1 1>&2 2>&3)
-          if [ $nas_manufactur -eq 1 ]; then
-            nas_synology=true
-            nas_qnap=false
-          elif [ $nas_manufactur -eq 2 ]; then
-            nas_synology=false
-            nas_qnap=true
-          else
-            nas_synology=false
-            nas_qnap=false
-          fi
-          nas_exist=ture
-          break
-        fi
-        if [ $N -eq 5 ]; then
-          whip_alert "${whip_title}" "Es konnte keine Verbindung zu deiner NAS hergestellt werden."
-          if whip_yesno "JA" "NEIN" "${whip_title}" "Möchtest du erneut versuchen Deine NAS einzubinden?"; then nas; fi
-        fi
+    if whip_yesno "JA" "NEIN" "${whip_title}" "Nutzt Du ein NAS in deinem Netzwerk?"; then
+      if check_ip; then
+        nas_exist=true
+        nas_ip=${ip}
+      else
         nas_exist=false
-      done
+        nas_ip=
+      fi
+    fi
+  fi
+  if ${nas_exist}; then
+    menu_nas=("1" "... Synology" \
+              "2" "... QNAP"\
+              "3" "... andere/keine")
+    nas_manufactur=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${whip_title} " "\nMein NAS Hersteller heisst..." 20 80 10 "${menu_nas[@]}" 3>&1 1>&2 2>&3)
+    if [ $nas_manufactur -eq 1 ]; then
+      nas_synology=true
+      nas_qnap=false
+    elif [ $nas_manufactur -eq 2 ]; then
+      nas_synology=false
+      nas_qnap=true
+    else
+      nas_synology=false
+      nas_qnap=false
     fi
   fi
 }
@@ -240,22 +197,22 @@ function nas() {
 function smtp() {
 # config SMTP server for email notification
   if $update; then
-    mail_rootadress=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die E-Mailadresse, an die Benachrichtigungen gesendet werden sollen?" "${mail_rootadress}")
+    mail_rootadress=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die E-Mailadresse, an die Benachrichtigungen gesendet werden sollen?" "$(echo ${mail_rootadress})")
   else
     mail_rootadress=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die E-Mailadresse, an die Benachrichtigungen gesendet werden sollen?" "$(pveum user list | grep 'root@pam' | awk '{print $5}')")
   fi
   if $update; then
-    mail_senderaddress=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die E-Mailadresse, von der Benachrichtigungen gesendet werden sollen?" "${mail_senderaddress}")
+    mail_senderaddress=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die E-Mailadresse, von der Benachrichtigungen gesendet werden sollen?" "$(echo ${mail_senderaddress})")
   else
     mail_senderaddress=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die E-Mailadresse, von der Benachrichtigungen gesendet werden sollen?" "notify@$(echo ${mail_rootadress} | cut -d\@ -f2)")
   fi
   if $update; then
-    mail_server=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die Adresse deines Mailserver?" "${mail_server}")
+    mail_server=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die Adresse deines Mailserver?" "$(echo ${mail_server})")
   else
     mail_server=$(whip_inputbox "OK" "${whip_title}" "Wie lautet die Adresse deines Mailserver?" "smtp.$(echo ${mail_rootadress} | cut -d\@ -f2)")
   fi
   if $update; then
-    mail_port=$(whip_inputbox "OK" "${whip_title}" "Welcher Port soll für deinen Mailserver verwendet werden?" "${mail_port}")
+    mail_port=$(whip_inputbox "OK" "${whip_title}" "Welcher Port soll für deinen Mailserver verwendet werden?" "$(echo ${mail_port})")
   else
     mail_port=$(whip_inputbox "OK" "${whip_title}" "Welcher Port soll für deinen Mailserver verwendet werden?" "587")
   fi
@@ -266,12 +223,12 @@ function smtp() {
   fi
 
   if $update; then
-    mail_user=$(whip_inputbox "OK" "${whip_title}" "Welcher Benutzername wird für den Login am Mailserver verwendet?" "${mail_user}")
+    mail_user=$(whip_inputbox "OK" "${whip_title}" "Welcher Benutzername wird für den Login am Mailserver verwendet?" "$(echo ${mail_user})")
   else
     mail_user=$(whip_inputbox "OK" "${whip_title}" "Welcher Benutzername wird für den Login am Mailserver verwendet?" "$(pveum user list | grep 'root@pam' | awk '{print $5}')")
   fi
   if $update; then
-    mail_password=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches für den Login am Mailserver verwendet wird?" "${mail_password}")
+    mail_password=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches für den Login am Mailserver verwendet wird?" "$(echo ${mail_password})")
   else
     mail_password=$(whip_inputbox_password "OK" "${whip_title}" "Wie lautet das Passwort, welches für den Login am Mailserver verwendet wird?")
   fi
@@ -281,7 +238,7 @@ function write_configfile() {
 # Write Mainconfig File
 
   # ask the user if the passwords should be saved in the configuration file
-  if whip_yesno "JA" "NEIN" "${whip_title}" "Sollen deine Passwörter unverschlüsselt im Klartext in der Konfigurationsdatei gespeichert werden (Sicherheit beachten)?"; then
+  if whip_yesno "JA" "NEIN" "${whip_title}" "Sollen deine Passwörter unverschlüsselt im Klartext in der Konfigurationsdatei gespeichert werden (unsicher)?"; then
     safe_pw=true
   else
     safe_pw=false
@@ -602,6 +559,14 @@ function config() {
   fi
   systemctl restart smartmontools
 }
+
+
+
+
+
+
+
+
 
 if [ ! -f "${config_path}/.config" ]; then
   if ! fristRun; then
