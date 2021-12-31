@@ -326,10 +326,12 @@ function write_configfile() {
 }
 
 function config() {
+  echoLOG b "Beginne mit der Proxmox Basiskonfiguration"
   # enable S.M.A.R.T.-Support on root disk if available and disabled
   if ! ${update}; then
+    echoLOG b "Aktiviere S.M.A.R.T. auf der Systemfestplatte"
     if [ $(smartctl -a /dev/${pve_rootdisk} | grep -c "SMART support is: Available") -eq 1 ] && [ $(smartctl -a /dev/${pve_rootdisk} | grep -c "SMART support is: Disabled") -eq 1 ]; then
-      smartctl -s on -a /dev/${pve_rootdisk}
+      smartctl -s on -a /dev/${pve_rootdisk} > /dev/null 2>&1
     fi
   fi
 
@@ -346,7 +348,8 @@ function config() {
     pvesm set ${pve_datadiskname} --content iso,vztmpl,rootdir,images
     #Enable S.M.A.R.T.-Support, if available and disabled
     if [ $(smartctl -a /dev/${pve_datadiskname} | grep -c "SMART support is: Available") -eq 1 ] && [ $(smartctl -a /dev/${pve_datadiskname} | grep -c "SMART support is: Disabled") -eq 1 ]; then
-      smartctl -s on -a /dev/${pve_datadiskname}
+      echoLOG b "Aktiviere S.M.A.R.T. auf der zweiten Festplatte"
+      smartctl -s on -a /dev/${pve_datadiskname} > /dev/null 2>&1
     fi
   fi
 
