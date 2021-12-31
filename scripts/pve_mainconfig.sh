@@ -10,35 +10,6 @@ source "${script_path}/language/${main_language}.sh"   # Language Variables in t
 
 whip_title="ERSTELLE/AKTUALISIERE KONFIGURATIONSDATEI"
 
-if [ ! -f "${config_path}/.config" ]; then
-  whip_title_fr="ERSTSTART"
-  if whip_alert_yesno "RECOVER" "KONFIG" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
-    if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
-    if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS, PC oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
-      if ! check_ip; then
-        if whip_alert_yesno "Beenden" "Erstellen" "${whip_title_fr}" "Die wiederherstellung der Konfigurationsdatei von deinem Netzwerkgerät wurde auf Deinen Wunsch abgebrochen. Möchtest Du dieses Script beenden, oder eine neue Konfigurationsdatei erstellen?"
-          exit 1
-        fi
-        mountUser=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Benutzername des Benutzers der Leserechte auf dieser Freigabe hat?" "netrobot")
-        mountPass=$(whip_inputbox_password "OK" "${whip_title_fr}" "Wie lautet das Passwort von diesem Benutzer?")
-        mount -t cifs -o user="${mountUser}",password="${mountPass}",rw,file_mode=0777,dir_mode=0777 "//${ip}" "/mnt/cfg_temp" > /dev/null 2>&1
-        mnt=true
-      else
-        if whip_yesno "DATENTRÄGER" "SERVER" "${whip_title_fr}" "Hast Du die Datei schon auf deinen HomeServer kopiert, oder befindet sie sich auf einem externen Datenträger?"; then # Mount USB Media and copy File
-        ext_disk=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Pfad zu deinem USB-Gerät? (siehe WebGUI -> Server -> Disks)" "/dev/sdc")
-        mount $ext_disk "/mnt/cfg_temp"
-        mnt=true
-      fi
-    fi
-    if ${mnt}; then 
-      whip_filebrowser "/mnt/cfg_temp/"
-    else
-      whip_filebrowser "/root/"
-    fi
-    source "${filepath}/${filename}"
-  fi
-fi
-
 # loads mainconfig file if exists
 if [ -f "${config_path}/${config_file}" ]; then source "${config_path}/${config_file}"; fi
 
@@ -560,27 +531,39 @@ function config() {
   systemctl restart smartmontools
 }
 
-
-
-
-
-
-
-
-
 if [ ! -f "${config_path}/.config" ]; then
-  if ! fristRun; then
-    echoLOG b "Die Konfigurationsdatei wird erstellt"
+  whip_title_fr="ERSTSTART"
+  if whip_alert_yesno "RECOVER" "KONFIG" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
+    if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
+    if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS, PC oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
+      if ! check_ip; then
+        if whip_alert_yesno "Beenden" "Erstellen" "${whip_title_fr}" "Die wiederherstellung der Konfigurationsdatei von deinem Netzwerkgerät wurde auf Deinen Wunsch abgebrochen. Möchtest Du dieses Script beenden, oder eine neue Konfigurationsdatei erstellen?"
+          exit 1
+        fi
+        mountUser=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Benutzername des Benutzers der Leserechte auf dieser Freigabe hat?" "netrobot")
+        mountPass=$(whip_inputbox_password "OK" "${whip_title_fr}" "Wie lautet das Passwort von diesem Benutzer?")
+        mount -t cifs -o user="${mountUser}",password="${mountPass}",rw,file_mode=0777,dir_mode=0777 "//${ip}" "/mnt/cfg_temp" > /dev/null 2>&1
+        mnt=true
+      else
+        if whip_yesno "DATENTRÄGER" "SERVER" "${whip_title_fr}" "Hast Du die Datei schon auf deinen HomeServer kopiert, oder befindet sie sich auf einem externen Datenträger?"; then # Mount USB Media and copy File
+        ext_disk=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Pfad zu deinem USB-Gerät? (siehe WebGUI -> Server -> Disks)" "/dev/sdc")
+        mount $ext_disk "/mnt/cfg_temp"
+        mnt=true
+      fi
+    fi
+    if ${mnt}; then 
+      whip_filebrowser "/mnt/cfg_temp/"
+    else
+      whip_filebrowser "/root/"
+    fi
+    source "${filepath}/${filename}"
+  else
+    echoLOG b "Konfigurationsdatei wird erstellt"
     vlan
     netrobot
     nas
     smtp
     write_configfile
-    if [ ! -f "${config_path}/${config_file}" ]; then
-      whip_alert "${whip_title}" "Die Konfiguratoinsdatei konnte nicht erstellt werden"
-      exit 1
-    fi
-    echoLOG g "Die Konfigurationsdatei wurde erfolgreich aktualisiert"
   fi
 fi
 

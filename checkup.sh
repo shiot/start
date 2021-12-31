@@ -39,7 +39,7 @@ fi
 
 # Ask for Language
 source <(curl -sSL https://raw.githubusercontent.com/shiot/start/${gh_tag}/list_language.sh)
-export main_language=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Language - Sprache" "Select your Language" 20 80 10 "${lng[@]}" 3>&1 1>&2 2>&3)
+export main_language=$(whiptail --menu --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title "Language - Sprache" "Select your Language" 0 80 0 "${lng[@]}" 3>&1 1>&2 2>&3)
 
 source <(curl -sSL https://raw.githubusercontent.com/shiot/start/${gh_tag}/language/${main_language}.sh)  # Load language file
 source <(curl -sSL https://raw.githubusercontent.com/shiot/start/${gh_tag}/sources/functions.sh)          # Load functions file
@@ -75,7 +75,7 @@ if ! package_exists "git"; then
     echo -e "XXX\n92\nInitiales Systemupdate wird ausgeführt ...\nXXX"
     if ! pveam update 2>&1 2>&1 >/dev/null; then false; fi
     echo -e "XXX\n98\nSystemvorbereitungen werden beendet ...\nXXX"
-  } | whiptail --gauge --backtitle "© 2021 - SmartHome-IoT.net" --title " ERSTSTART " "\nDein HomeServer wird auf Systemupdates geprüft, eventuell benötigte Software wird installiert ..." 10 80 0
+  } | whiptail --gauge --backtitle "© 2021 - SmartHome-IoT.net" --title " ERSTSTART " "\nDein HomeServer wird auf Systemupdates geprüft, eventuell benötigte Software wird installiert ..." 0 80 0
   echoLOG g "Updates und benötigte Software Pakete wurden installiert"
 fi
 
