@@ -415,7 +415,7 @@ function config() {
     echo [${mail_server}]:${mail_port} "${mail_user}":"${mail_password}" >> /etc/postfix/sasl_passwd
     chmod 600 /etc/postfix/sasl_passwd 
     sed -i "/#/!s/\(relayhost[[:space:]]*=[[:space:]]*\)\(.*\)/\1"[${mail_server}]:"${mail_port}""/"  /etc/postfix/main.cf
-    postconf smtp_use_tls=${var_mailtls}
+    postconf smtp_use_tls=${mail_tls}
     if ! grep "smtp_sasl_password_maps" /etc/postfix/main.cf; then
       postconf smtp_sasl_password_maps=hash:/etc/postfix/sasl_passwd &> /dev/null
     fi
