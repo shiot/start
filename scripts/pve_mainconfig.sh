@@ -223,7 +223,15 @@ function write_configfile() {
   echo -e "\n\0043 General configuration" >> "${config_path}/${config_file}"
   echo -e "config_version=\"${version_mainconfig}\"" >> "${config_path}/${config_file}"
   echo -e "main_language=\"${main_language}\"" >> "${config_path}/${config_file}"
-  echo -e "darkmode=\"${dark_mode}\"" >> "${config_path}/${config_file}"
+  if whip_yesno "heller Modus" "dunkler Modus" "Proxmox WebGUI" "Möchtest du den Darkmode in Proxmox aktivieren?\n weitere Infos unter https://github.com/Weilbyte/PVEDiscordDark"; then
+    echo -e "darkmode=false" >> "${config_path}/${config_file}"
+    bash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh) --silent status
+    if [ $? -eq 0 ]; then bash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh) --silent uninstall; fi
+  else
+    echo -e "darkmode=true" >> "${config_path}/${config_file}"
+    bash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh) --silent status
+    if [ $? -eq 1 ]; then bash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh) --silent install; fi
+  fi
   echo -e "\n\0043 Network configuration" >> "${config_path}/${config_file}"
   echo -e "network_ip=\"$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3)\"" >> "${config_path}/${config_file}"
   echo -e "network_gateway=\"$(ip r | grep default | cut -d" " -f3)\"" >> "${config_path}/${config_file}"
