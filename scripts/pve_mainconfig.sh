@@ -223,6 +223,7 @@ function write_configfile() {
   echo -e "\n\0043 General configuration" >> "${config_path}/${config_file}"
   echo -e "config_version=\"${version_mainconfig}\"" >> "${config_path}/${config_file}"
   echo -e "main_language=\"${main_language}\"" >> "${config_path}/${config_file}"
+  echo -e "darkmode=\"${dark_mode}\"" >> "${config_path}/${config_file}"
   echo -e "\n\0043 Network configuration" >> "${config_path}/${config_file}"
   echo -e "network_ip=\"$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1 | cut -d. -f1,2,3)\"" >> "${config_path}/${config_file}"
   echo -e "network_gateway=\"$(ip r | grep default | cut -d" " -f3)\"" >> "${config_path}/${config_file}"
@@ -331,25 +332,25 @@ function config() {
   if ! ${update}; then
     echoLOG b "Aktiviere S.M.A.R.T. auf der Systemfestplatte"
     if [ $(smartctl -a /dev/${pve_rootdisk} | grep -c "SMART support is: Available") -eq 1 ] && [ $(smartctl -a /dev/${pve_rootdisk} | grep -c "SMART support is: Disabled") -eq 1 ]; then
-      smartctl -s on -a /dev/${pve_rootdisk} &> /dev/null
+      smartctl -s on -a /dev/${pve_rootdisk} > /dev/null 2>&1
     fi
   fi
 
   # if available, config second SSD as data Storage
   if [ -n ${pve_datadisk} ]; then
     echoLOG b "Eine zweite SSD wurde im System gefunden und wird als Datenlaufwerk für Gastdatenträger/Images und ISO-Dateien an Proxmox gebunden"
-    parted -s /dev/${pve_datadisk} "mklabel gpt" &> /dev/null
-    parted -s -a opt /dev/${pve_datadisk} mkpart primary ext4 0% 100% &> /dev/null
-    mkfs.ext4 -Fq -L ${pve_datadiskname} /dev/"${pve_datadisk}"1 &> /dev/null
-    mkdir -p /mnt/${pve_datadiskname} &> /dev/null
-    mount -o defaults /dev/"${pve_datadisk}"1 /mnt/${pve_datadiskname} &> /dev/null
+    parted -s /dev/${pve_datadisk} "mklabel gpt" > /dev/null 2>&1
+    parted -s -a opt /dev/${pve_datadisk} mkpart primary ext4 0% 100% > /dev/null 2>&1
+    mkfs.ext4 -Fq -L ${pve_datadiskname} /dev/"${pve_datadisk}"1 > /dev/null 2>&1
+    mkdir -p /mnt/${pve_datadiskname} > /dev/null 2>&1
+    mount -o defaults /dev/"${pve_datadisk}"1 /mnt/${pve_datadiskname} > /dev/null 2>&1
     echo "UUID=$(lsblk -o LABEL,UUID | grep "${pve_datadiskname}" | awk '{print $2}') /mnt/${pve_datadiskname} ext4 defaults 0 2" >> /etc/fstab
     pvesm add dir ${pve_datadiskname} --path /mnt/${pve_datadiskname}
     pvesm set ${pve_datadiskname} --content iso,vztmpl,rootdir,images
     #Enable S.M.A.R.T.-Support, if available and disabled
     if [ $(smartctl -a /dev/${pve_datadiskname} | grep -c "SMART support is: Available") -eq 1 ] && [ $(smartctl -a /dev/${pve_datadiskname} | grep -c "SMART support is: Disabled") -eq 1 ]; then
       echoLOG b "Aktiviere S.M.A.R.T. auf der zweiten Festplatte"
-      smartctl -s on -a /dev/${pve_datadiskname} &> /dev/null
+      smartctl -s on -a /dev/${pve_datadiskname} > /dev/null 2>&1
     fi
   fi
 
@@ -371,7 +372,7 @@ function config() {
   # if available, mount NAS as Backupstorage
   if ${nas_exist}; then
     for N in $(seq 1 5); do
-      pvesm add cifs backups --server "${nas_ip}" --share "backups" --username "${robot_name}" --password "${mail_password}" --content backup &> /dev/null
+      pvesm add cifs backups --server ${nas_ip} --share backups --username "${robot_name}" --password "${mail_password}" --content backup > /dev/null 2>&1
       if [ $? -eq 0 ]; then
         echoLOG g "Deine NAS wurde als Backuplaufwerk an Proxmox gebunden"
         pvesh create /pools --poolid BackupPool --comment "Von Maschinen in diesem Pool werden täglich Backups erstellt"
@@ -380,7 +381,7 @@ function config() {
         sleep 5
         #copy mainconfig to NAS
         echoLOG b "Die Konfigurationsdatei wird auf der NAS gesichert"
-        cp "$shiot_configPath/$shiot_configFile" "/mnt/pve/backups/SHIoT_configuration.txt" &> /dev/null
+        cp "$shiot_configPath/$shiot_configFile" "/mnt/pve/backups/SHIoT_configuration.txt" > /dev/null 2>&1
         if [ $? -eq 0 ]; then echoLOG g "Kopiervorgang erfolgreich"; else echoLOG r "Kopiervorgang nicht erfolgreich"; fi
         break
       else
@@ -403,7 +404,7 @@ function config() {
 
     #Start Configure
     if grep "root:" /etc/aliases; then
-      sed -i "s/^root:.*$/root: ${mail_rootadress}/" /etc/aliases &> /dev/null
+      sed -i "s/^root:.*$/root: ${mail_rootadress}/" /etc/aliases > /dev/null 2>&1
     else
       echo "root: ${mail_rootadress}" >> /etc/aliases
     fi
@@ -417,23 +418,23 @@ function config() {
     sed -i "/#/!s/\(relayhost[[:space:]]*=[[:space:]]*\)\(.*\)/\1"[${mail_server}]:"${mail_port}""/"  /etc/postfix/main.cf
     postconf smtp_use_tls=${mail_tls}
     if ! grep "smtp_sasl_password_maps" /etc/postfix/main.cf; then
-      postconf smtp_sasl_password_maps=hash:/etc/postfix/sasl_passwd &> /dev/null
+      postconf smtp_sasl_password_maps=hash:/etc/postfix/sasl_passwd > /dev/null 2>&1
     fi
     if ! grep "smtp_tls_CAfile" /etc/postfix/main.cf; then
-      postconf smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt &> /dev/null
+      postconf smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt > /dev/null 2>&1
     fi
     if ! grep "smtp_sasl_security_options" /etc/postfix/main.cf; then
-      postconf smtp_sasl_security_options=noanonymous &> /dev/null
+      postconf smtp_sasl_security_options=noanonymous > /dev/null 2>&1
     fi
     if ! grep "smtp_sasl_auth_enable" /etc/postfix/main.cf; then
-      postconf smtp_sasl_auth_enable=yes &> /dev/null
+      postconf smtp_sasl_auth_enable=yes > /dev/null 2>&1
     fi 
     if ! grep "sender_canonical_maps" /etc/postfix/main.cf; then
-      postconf sender_canonical_maps=hash:/etc/postfix/canonical &> /dev/null
+      postconf sender_canonical_maps=hash:/etc/postfix/canonical > /dev/null 2>&1
     fi 
-    postmap /etc/postfix/sasl_passwd &> /dev/null
-    postmap /etc/postfix/canonical &> /dev/null
-    systemctl restart postfix  &> /dev/null && systemctl enable postfix  &> /dev/null
+    postmap /etc/postfix/sasl_passwd > /dev/null 2>&1
+    postmap /etc/postfix/canonical > /dev/null 2>&1
+    systemctl restart postfix  > /dev/null 2>&1 && systemctl enable postfix  > /dev/null 2>&1
     rm -rf "/etc/postfix/sasl_passwd"
 
     #Test Settings
@@ -545,7 +546,7 @@ if [ ! -f "${config_path}/.config" ]; then
         fi
         mountUser=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Benutzername des Benutzers der Leserechte auf dieser Freigabe hat?" "netrobot")
         mountPass=$(whip_inputbox_password "OK" "${whip_title_fr}" "Wie lautet das Passwort von diesem Benutzer?")
-        mount -t cifs -o user="${mountUser}",password="${mountPass}",rw,file_mode=0777,dir_mode=0777 "//${ip}" "/mnt/cfg_temp" &> /dev/null
+        mount -t cifs -o user="${mountUser}",password="${mountPass}",rw,file_mode=0777,dir_mode=0777 "//${ip}" "/mnt/cfg_temp" > /dev/null 2>&1
         mnt=true
       else
         if whip_yesno "DATENTRÄGER" "SERVER" "${whip_title_fr}" "Hast Du die Datei schon auf deinen HomeServer kopiert, oder befindet sie sich auf einem externen Datenträger?"; then # Mount USB Media and copy File
