@@ -380,7 +380,7 @@ function config() {
   # if available, mount NAS as Backupstorage
   if ${nas_exist}; then
     for N in $(seq 1 5); do
-      pvesm add cifs backups --server ${nas_ip} --share backups --username "${robot_name}" --password "${mail_password}" --content backup > /dev/null 2>&1
+      backups --server ${nas_ip} --share backups --username "${robot_name}" --password "${mail_password}" --content backup
       if [ $? -eq 0 ]; then
         echoLOG g "Deine NAS wurde als Backuplaufwerk an Proxmox gebunden"
         pvesh create /pools --poolid BackupPool --comment "Von Maschinen in diesem Pool werden täglich Backups erstellt"
