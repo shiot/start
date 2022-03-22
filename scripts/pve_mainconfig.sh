@@ -325,7 +325,7 @@ function write_configfile() {
   echo -e "pve_ip=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f1)" >> "${config_path}/${config_file}"
   echo -e "pve_timezone=$(timedatectl | grep "Time zone" | awk '{print $3}')" >> "${config_path}/${config_file}"
   echo -e "pve_rootdisk=$(eval $(lsblk -oMOUNTPOINT,PKNAME -P | grep 'MOUNTPOINT="/"'); echo $PKNAME | sed 's|[0-9]*$||')" >>  "${config_path}/${config_file}"
-  if [[ $(cat /sys/block/$(lsblk -nd --output NAME | grep "sd" | sed "s|$pve_rootdisk||" | sed ':M;N;$!bM;s|\n||g')/queue/rotational) -eq 0 ]]; then
+  if [ -f "/sys/block/$(lsblk -nd --output NAME | grep "sd" | sed "s|$pve_rootdisk||" | sed ':M;N;$!bM;s|\n||g')/queue/rotational" ]; then
     echo -e "pve_datadisk=$(lsblk -nd --output NAME | grep "sd" | sed "s|$pve_rootdisk||" | sed ':M;N;$!bM;s|\n||g')" >> "${config_path}/${config_file}"
     echo -e "pve_datadiskname=data" >> "${config_path}/${config_file}"
   else
@@ -335,6 +335,7 @@ function write_configfile() {
 }
 
 function config() {
+  echoLOG b "Konfiguriere deinen Proxmox HomeServer"
   echoLOG b "Beginne mit der Proxmox Basiskonfiguration"
   # enable S.M.A.R.T.-Support on root disk if available and disabled
   if ! ${update}; then
@@ -546,7 +547,9 @@ function config() {
 if [ ! -f "${config_path}/.config" ]; then
   whip_title_fr="ERSTSTART"
   if whip_alert_yesno "RECOVER" "KONFIG" "${whip_title_fr}" "Soll dieser Server neu konfiguriert werden, oder möchtest Du eine gesicherte Konfigurationsdatei laden (Recovery)?"; then
-    if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
+    if [ ! -d "/mnt/cfg_temp" ]; then
+      mkdir -p "/mnt/cfg_temp"
+    fi
     if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS, PC oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
       if ! check_ip; then
         if whip_alert_yesno "Beenden" "Erstellen" "${whip_title_fr}" "Die wiederherstellung der Konfigurationsdatei von deinem Netzwerkgerät wurde auf Deinen Wunsch abgebrochen. Möchtest Du dieses Script beenden, oder eine neue Konfigurationsdatei erstellen?"; then
@@ -578,28 +581,29 @@ if [ ! -f "${config_path}/.config" ]; then
     smtp
     write_configfile
   fi
-fi
-
-if $update; then
-  echoLOG b "Die Konfigurationsdatei wird aktualisiert"
-  vlan
-  netrobot
-  nas
-  smtp
-  write_configfile
-  if [ ! -f "${config_path}/${config_file}" ]; then
-    whip_alert "${whip_title}" "Die Konfiguratoinsdatei konnte nicht aktualisiert werden"
-    exit 1
-  fi
-  echoLOG g "Die Konfigurationsdatei wurde erfolgreich aktualisiert"
-fi
-
-if [ -f "${config_path}/${config_file}" ]; then
-  echoLOG b "Konfiguriere deinen Proxmox HomeServer"
   if ! config; then
     echoLOG r "Deine Proxmox Serverkonfiguration konnte nicht erfolgreich durchgeführt werden"
     exit 1
   fi
+  exit 0
 fi
+
+#if $update; then
+#  echoLOG b "Die Konfigurationsdatei wird aktualisiert"
+#  vlan
+#  netrobot
+#  nas
+#  smtp
+#  write_configfile
+#  if [ ! -f "${config_path}/${config_file}" ]; then
+#    whip_alert "${whip_title}" "Die Konfiguratoinsdatei konnte nicht aktualisiert werden"
+#    exit 1
+#  fi
+#  echoLOG g "Die Konfigurationsdatei wurde erfolgreich aktualisiert"
+#  if ! config; then
+#    echoLOG r "Deine Proxmox Serverkonfiguration konnte nicht erfolgreich durchgeführt werden"
+#    exit 1
+#  fi
+#fi
 
 exit 0
