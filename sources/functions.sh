@@ -231,11 +231,11 @@ function check_ip() {
 }
 
 function package_exists() {
-    if [ $(dpkg-query -s "${1}" | grep -cw "Status: install ok installed") -eq 1 ]; then
-        true
-    else
-        false
-    fi
+  if [ $(dpkg-query -s "${1}" &> /dev/null | grep -cw "Status: install ok installed") -eq 1 ]; then
+    true
+  else
+    false
+  fi
 }
 
 function lxc_mountNAS() {
