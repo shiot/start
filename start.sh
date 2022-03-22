@@ -4,6 +4,7 @@
 # Proxmox Host system and generate some configuration files, for later use
 
 export script_path=$(cd `dirname $0` && pwd)
+export main_language=$1
 
 #Load needed Files
 source ${script_path}/sources/functions.sh            # Functions needed in this Script
