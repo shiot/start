@@ -85,7 +85,7 @@ function echoLOG() {
   yellow='\033[1;33m'
   blue='\033[1;34m'
   
-  if [ ! -d "/opt/smarthome-iot_net/" ]; then mkdir -p "/opt/smarthome-iot_net/"; fi
+  if [ ! -d "${config_path}" ]; then mkdir -p "${config_path}"; fi
   if [ ! -f "${log_file}" ]; then touch "${log_file}"; fi
   
   if [[ $typ == "r" ]]; then
