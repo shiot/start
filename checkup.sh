@@ -2,10 +2,10 @@
 #
 # This File checks if the Script is running on Proxmox v7.x Server and download repository if it's true
 # You can call the Script by the following code
-# curl -sSL enter.smarthome-iot.net | bash                        >> for normal use
-# curl -sSL enter.smarthome-iot.net | bash /dev/stdin master      >> if you want to use the beta of this script
-# curl -sSL enter.smarthome-iot.net | bash /dev/stdin dev         >> if you want to use your own stuff
-# curl -sSL enter.smarthome-iot.net | bash /dev/stdin master dev  >> if you want to use the beta of this script and your own stuff
+# curl -sSL start.smarthome-iot.net | bash                        >> for normal use
+# curl -sSL start.smarthome-iot.net | bash /dev/stdin master      >> if you want to use the beta of this script
+# curl -sSL start.smarthome-iot.net | bash /dev/stdin dev         >> if you want to use your own stuff
+# curl -sSL start.smarthome-iot.net | bash /dev/stdin master dev  >> if you want to use the beta of this script and your own stuff
 
 # Determine execution variant
 export beta_repo=false
