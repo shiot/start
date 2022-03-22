@@ -155,8 +155,44 @@ function whip_inputbox() {
   fi
 }
 
+function whip_alert_inputbox() {
+  #call whip_inputbox "btn" "title" "message" "default value"
+  NEWT_COLORS='
+      window=black,red
+      border=white,red
+      textbox=white,red
+      button=black,yellow
+    ' \
+  input=$(whiptail --inputbox --ok-button " ${1} " --nocancel --backtitle "© 2021 - SmartHome-IoT.net" --title " ${2} " "\n${3}" 0 80 "${4}" 3>&1 1>&2 2>&3)
+  if [[ $input == "" ]]; then
+    whip_inputbox "$1" "$2" "$3" "$4\n\n!!! Es muss eine Eingabe erfolgen !!!" ""
+  else
+    echo "${input}"
+  fi
+}
+
 function whip_inputbox_cancel() {
   #call whip_inputbox_cancel "btn1" "btn2" "title" "message" "default value"
+  input=$(whiptail --inputbox --ok-button " ${1} " --cancel-button " ${2} " --backtitle "© 2021 - SmartHome-IoT.net" --title " ${3} " "\n${4}" 0 80 "${5}" 3>&1 1>&2 2>&3)
+  if [ $? -eq 1 ]; then
+    echo cancel
+  else
+    if [[ $input == "" ]]; then
+      whip_inputbox_cancel "$1" "$2" "$3" "$4\n\n!!! Es muss eine Eingabe erfolgen !!!" ""
+    else
+      echo "${input}"
+    fi
+  fi
+}
+
+function whip_alert_inputbox_cancel() {
+  #call whip_inputbox_cancel "btn1" "btn2" "title" "message" "default value"
+  NEWT_COLORS='
+      window=black,red
+      border=white,red
+      textbox=white,red
+      button=black,yellow
+    ' \
   input=$(whiptail --inputbox --ok-button " ${1} " --cancel-button " ${2} " --backtitle "© 2021 - SmartHome-IoT.net" --title " ${3} " "\n${4}" 0 80 "${5}" 3>&1 1>&2 2>&3)
   if [ $? -eq 1 ]; then
     echo cancel
@@ -223,7 +259,7 @@ function whip_filebrowser() {
 function check_ip() {
   if [ -n $1 ]; then ip="$1"; else ip=""; fi
   while ! pingIP ${ip}; do
-    ip=$(whip_inputbox_cancel "OK" "Abbrechen" "${whip_title_fr}" "Wie lautet die IP-Adresse des Netzwerkgerätes, auf dem sich die Freigabe befindet?" "$(echo ${ip})")
+    ip=$(whip_alert_inputbox_cancel "OK" "Abbrechen" "${whip_title_fr}" "Die angegebene IP-Adresse kann nicht gefunden werden, bitte prüfen und noch einmal versuchen!" "$(echo ${ip})")
     RET=$?
     if [ $RET -eq 1 ]; then return 1; fi  # Check if User selected cancel
   done
