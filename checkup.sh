@@ -82,6 +82,6 @@ fi
 mkdir "/root/shiot"
 git clone --branch ${gh_tag} https://github.com/shiot/start.git "/root/shiot"
 
-bash "/root/shiot/start.sh"
+bash /root/shiot/start.sh ${main_language}
 
 exit
