@@ -558,9 +558,10 @@ if [ ! -f "${config_path}/.config" ]; then
         mnt=true
       else
         if whip_yesno "DATENTRÄGER" "SERVER" "${whip_title_fr}" "Hast Du die Datei schon auf deinen HomeServer kopiert, oder befindet sie sich auf einem externen Datenträger?"; then # Mount USB Media and copy File
-        ext_disk=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Pfad zu deinem USB-Gerät? (siehe WebGUI -> Server -> Disks)" "/dev/sdc")
-        mount $ext_disk "/mnt/cfg_temp"
-        mnt=true
+          ext_disk=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Pfad zu deinem USB-Gerät? (siehe WebGUI -> Server -> Disks)" "/dev/sdc")
+          mount $ext_disk "/mnt/cfg_temp"
+          mnt=true
+        fi
       fi
     fi
     if ${mnt}; then 
