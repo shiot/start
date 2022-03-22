@@ -238,7 +238,7 @@ function write_configfile() {
   echo -e "network_cidr=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | cut -d/ -f2)" >> "${config_path}/${config_file}"
   echo -e "network_domainname=$(hostname -f | cut -d. -f2,3)" >> "${config_path}/${config_file}"
   echo -e "network_adapter0=$(cat /etc/network/interfaces | grep bridge-ports | cut -d" " -f2)" >> "${config_path}/${config_file}"
-  if [ $(cat /etc/network/interfaces | grep bridge-ports | cut -d" " -f2 | grep -v ${network_adapter0} | wc -l) -gt 0 ]; then
+  if [ $(cat /etc/network/interfaces | grep bridge-ports | cut -d" " -f2 | grep -v $(cat /etc/network/interfaces | grep bridge-ports | cut -d" " -f2) | wc -l) -gt 0 ]; then
     i=0
     for card in $(cat /etc/network/interfaces | grep bridge-ports | cut -d" " -f2 | grep -v enp4s7 | sed ':M;N;$!bM;s|\n| |g'); do
       i=$(( $i + 1 ))
@@ -381,7 +381,7 @@ function config() {
   # if available, mount NAS as Backupstorage
   if ${nas_exist}; then
     for N in $(seq 1 5); do
-      pvesm add cifs backups --server ${nas_ip} --share backups --username "${robot_name}" --password "${mail_password}" --content backup
+      $(pvesm add cifs backups --server ${nas_ip} --share backups --username "${robot_name}" --password "${mail_password}" --content backup)
       if [ $? -eq 0 ]; then
         echoLOG g "Deine NAS wurde als Backuplaufwerk an Proxmox gebunden"
         pvesh create /pools --poolid BackupPool --comment "Von Maschinen in diesem Pool werden täglich Backups erstellt"
@@ -405,11 +405,11 @@ function config() {
   # if set, config email notification in Proxmox
   if [ -n "${mail_rootadress}" ]; then
     #Backup Files
-    bak_file "backup" "/etc/aliases"
-    bak_file "backup" "/etc/postfix/canonical"
-    bak_file "backup" "/etc/postfix/sasl_passwd"
-    bak_file "backup" "/etc/postfix/main.cf"
-    bak_file "backup" "/etc/ssl/certs/ca-certificates.crt"
+    if [ -f "/etc/aliases" ]; then bak_file "backup" "/etc/aliases"; fi
+    if [ -f "/etc/postfix/canonical" ]; then bak_file "backup" "/etc/postfix/canonical"; fi
+    if [ -f "/etc/postfix/sasl_passwd" ]; then bak_file "backup" "/etc/postfix/sasl_passwd"; fi
+    if [ -f "/etc/postfix/main.cf" ]; then bak_file "backup" "/etc/postfix/main.cf"; fi
+    if [ -f "/etc/ssl/certs/ca-certificates.crt" ]; then bak_file "backup" "/etc/ssl/certs/ca-certificates.crt"; fi
 
     #Start Configure
     if grep "root:" /etc/aliases; then
@@ -491,7 +491,7 @@ function config() {
   if [ ! -d "/etc/pve/firewall" ]; then mkdir -p "/etc/pve/firewall"; fi
   if [ ! -d "/etc/pve/nodes/${pve_hostname}" ]; then mkdir -p "/etc/pve/nodes/${pve_hostname}"; fi
   #Backup Files
-  bak_file "backup" "/etc/pve/firewall/cluster.fw"
+  if [ -f "/etc/pve/firewall/cluster.fw" ]; then bak_file "backup" "/etc/pve/firewall/cluster.fw"; fi
 
   #Cluster level firewall - IP SET
   echo -e "[OPTIONS]\nenable: 1\n" >> ${fw_cluster_file}
