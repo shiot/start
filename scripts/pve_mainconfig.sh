@@ -549,7 +549,7 @@ if [ ! -f "${config_path}/.config" ]; then
     if [ ! -d "/mnt/cfg_temp" ]; then mkdir -p "/mnt/cfg_temp"; fi
     if whip_yesno "FREIGABE" "LOKAL" "${whip_title_fr}" "Wo befindet sich die Konfigurationsdatei? (Netzfreigabe z.B. NAS, PC oder lokal z.B. USB-Stick, Server)"; then # Mount Network Share and copy File
       if ! check_ip; then
-        if whip_alert_yesno "Beenden" "Erstellen" "${whip_title_fr}" "Die wiederherstellung der Konfigurationsdatei von deinem Netzwerkgerät wurde auf Deinen Wunsch abgebrochen. Möchtest Du dieses Script beenden, oder eine neue Konfigurationsdatei erstellen?"
+        if whip_alert_yesno "Beenden" "Erstellen" "${whip_title_fr}" "Die wiederherstellung der Konfigurationsdatei von deinem Netzwerkgerät wurde auf Deinen Wunsch abgebrochen. Möchtest Du dieses Script beenden, oder eine neue Konfigurationsdatei erstellen?"; then
           exit 1
         fi
         mountUser=$(whip_inputbox "OK" "${whip_title_fr}" "Wie lautet der Benutzername des Benutzers der Leserechte auf dieser Freigabe hat?" "netrobot")
