@@ -3,9 +3,9 @@
 # Function ping given IP and return TRUE if available
 function pingIP() {
   if ping -c 1 $1 &> /dev/null; then
-    return 0
+    true
   else
-    return 1
+    false
   fi
 }
 
@@ -263,7 +263,6 @@ function check_ip() {
     RET=$?
     if [ $RET -eq 1 ]; then return 1; fi  # Check if User selected cancel
   done
-  echo "${ip}"
 }
 
 function package_exists() {
