@@ -390,7 +390,7 @@ function config() {
         sleep 5
         #copy mainconfig to NAS
         echoLOG b "Die Konfigurationsdatei wird auf der NAS gesichert"
-        cp "$shiot_configPath/$shiot_configFile" "/mnt/pve/backups/SHIoT_configuration.txt" > /dev/null 2>&1
+        cp "${shiot_configPath}/${shiot_configFile}" "/mnt/pve/backups/SHIoT_configuration.txt" > /dev/null 2>&1
         if [ $? -eq 0 ]; then echoLOG g "Kopiervorgang erfolgreich"; else echoLOG r "Kopiervorgang nicht erfolgreich"; fi
         break
       else
